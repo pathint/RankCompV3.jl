@@ -1,5 +1,6 @@
 module RankCompV3
 
+using Pkg
 using Distributed
 using SharedArrays
 using Base.Threads
@@ -15,8 +16,8 @@ using RCall
 @everywhere using LinearAlgebra
 @everywhere using ArgParse
 
-export reoa
 
+export reoa,reoa_test
 
 # Determine whether the required R package exists
 function check_R_packages()
@@ -46,12 +47,11 @@ function check_R_packages()
     """
     return 
 end
-check_R_packages()
 
 
 #   If two genes have the same expression value,
 #   a random order is returned.
-@everywhere function is_greater(x::Number, y::Number)
+function is_greater(x::Number, y::Number)
 	if abs(x - y) < 0.5
 		return rand(Bool)
 	else
@@ -75,7 +75,7 @@ function get_major_reo_lower_count(sample_size::Int,
 	end
 end
 
-@everywhere function sum_reo(
+function sum_reo(
 			      c_size::Int32,
 			      t_size::Int32,
 			      c_sign::Int32,
@@ -137,7 +137,7 @@ end
 	end
 end
 
-@everywhere function compute_pval( c_ctrl::Int32,
+function compute_pval( c_ctrl::Int32,
     c_treat::Int32,
      n_ctrl::Int32,
     n_treat::Int32,
@@ -197,8 +197,7 @@ function compare_reos(ctrl::AbstractMatrix,
 end
 
 
-#输入要为方阵,如#N = [n11 n12 n13, n21 n22 n23, n31 n32 n33]
-@everywhere function McCULLACH_test(data::Matrix)
+function McCULLACH_test(data::Matrix)
 	l_i = size(data)[1]
     l_j = size(data)[2]
     #N,n,r
@@ -235,8 +234,7 @@ end
     end
 end
 
-######随机抽取管家基因
-@everywhere function rand_sit(ref_gene_num::Int64,ref_sum_yuan::Int64)
+function rand_sit(ref_gene_num::Int64,ref_sum_yuan::Int64)
     rand_num = unique([rand(1:ref_sum_yuan) for r in 1:ref_gene_num*100])
     if length(rand_num) >= ref_gene_num
         return rand_num[1:ref_gene_num]
@@ -341,8 +339,8 @@ end
 
 
 ###### Iteratively update housekepping gene
-@everywhere function reoa_update_housekeeping_gene(df_ctrl::DataFrame,
-        df_treat::DataFrame,
+function reoa_update_housekeeping_gene(df_ctrl,
+        df_treat,
         names::Vector{String},
         ref_gene::Vector{Bool},
          c_ctrl::Int64,
@@ -444,13 +442,15 @@ end
 	     )
     end
 end
-function reoa(fn_expr::AbstractString="expr.txt",
-        fn_metadata::AbstractString="metadata.txt";
+
+
+function reoa(fn_expr::AbstractString,
+        fn_metadata::AbstractString;
     expr_threshold::Number = 3,
           pval_reo::AbstractFloat = 0.01,
      pval_sign_reo::AbstractFloat = 1.00,
      padj_sign_reo::AbstractFloat = 0.05,
-           hk_file::AbstractString = "HK_genes_info.tsv",
+           hk_file::AbstractString = "$(joinpath(@__DIR__, "..", "hk_gene_file", "HK_genes_info.tsv"))",
            hk_name::AbstractString = "ENSEMBL",
       ref_gene_num::Int = 3000,
     no_use_housekeeping::Int = 0,
@@ -462,6 +462,7 @@ function reoa(fn_expr::AbstractString="expr.txt",
     """
     New implementation.
     """
+    check_R_packages()
     cd(work_dir)
     # Import datasets
     isfile(fn_expr) || throw(ArgumentError(fn_expr, " does not exist or is not a regular file."))
@@ -586,6 +587,11 @@ function reoa(fn_expr::AbstractString="expr.txt",
         ref_gene_new
         )
     return result
+end
+
+function reoa_test()
+    reoa("$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))",
+    "$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))")
 end
 
 end # module
