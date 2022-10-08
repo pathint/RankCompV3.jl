@@ -1,2 +1,2 @@
-# plot_pdf
-RankCompV3示例数据输出的全部结果
+# RankCompV3 test data output
+Full result of RankCompV3 test data output
