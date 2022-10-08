@@ -316,6 +316,9 @@ function deg_exp_graph(data::DataFrame,fn_stem::String,c_ctrl::Int64,c_treat::In
     R"""
     rownames(data)=data[,1]
     data=data[,-1]
+    data=log2(data)
+    data[data==Inf]<-0
+    data[data==-Inf]<-0
     annotation_col <- data.frame(
       sample_type = c(rep("group1", each = c_ctrl), rep("group2", each = c_treat))
     )
