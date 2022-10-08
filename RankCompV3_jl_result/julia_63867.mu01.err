@@ -1,2 +1,0 @@
-DeprecationWarning: 'source deactivate' is deprecated. Use 'conda deactivate'.
-ssh: connect to host mu01 port 22: Connection refused
