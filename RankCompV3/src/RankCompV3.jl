@@ -447,8 +447,8 @@ function reoa_update_housekeeping_gene(df_ctrl,
 end
 
 
-function reoa(fn_expr::AbstractString="fn_expr.txt",
-        fn_metadata::AbstractString="fn_metadata.txt";
+function reoa(fn_expr::AbstractString = "fn_expr.txt",
+        fn_metadata::AbstractString = "fn_metadata.txt";
     expr_threshold::Number = 3,
           pval_reo::AbstractFloat = 0.01,
      pval_sign_reo::AbstractFloat = 1.00,
@@ -456,17 +456,22 @@ function reoa(fn_expr::AbstractString="fn_expr.txt",
            hk_file::AbstractString = "$(joinpath(@__DIR__, "..", "hk_gene_file", "HK_genes_info.tsv"))",
            hk_name::AbstractString = "ENSEMBL",
       ref_gene_num::Int = 3000,
-    no_use_housekeeping::Int = 0,
+    use_housekeeping::AbstractFloat = "yes",
            species::AbstractString = "human",
     cell_drop_rate::Int = 0,
     gene_drop_rate::Int = 0,
-    work_dir::AbstractString = "./"
+    work_dir::AbstractString = "./",
+    use_testdata::AbstractFloat = "no"
     )
     """
     New implementation.
     """
     check_R_packages()
     cd(work_dir)
+    if use_testdata != "FALSE"
+        fn_expr = "$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))"
+        fn_metadata="$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))"
+    end
     # Import datasets
     isfile(fn_expr) || throw(ArgumentError(fn_expr, " does not exist or is not a regular file."))
     filesize(fn_expr) > 0 || throw(ArgumentError("file for expression matrix has size 0."))
@@ -526,7 +531,7 @@ function reoa(fn_expr::AbstractString="fn_expr.txt",
     r_treat, c_treat = size(df_treat)
     println("INFO: Size of the control group: ",   size(df_ctrl ))
     println("INFO: Size of the treatment group: ", size(df_treat))
-    if no_use_housekeeping == 0
+    if use_housekeeping == "yes"
         # Read in the list of house-keeping genes
         isfile(hk_file) || throw(ArgumentError(hk_file, " does not exist or is not a regular file."))
         filesize(hk_file) > 0 || throw(ArgumentError("file for house keeping genes has size 0."))
