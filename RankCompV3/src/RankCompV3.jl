@@ -491,12 +491,13 @@ function reoa(fn_expr::AbstractString,
     end
     expr = expr[!,2:end]
     metadata = CSV.read(fn_metadata, DataFrame)
+    md_r,md_c=size(metadata)
     uniq_metadata=unique(metadata[:,2])
     if size(uniq_metadata)[1] != 2
         return(println("ERROR:There are more than two sample groups in the entered group file. Change the sample groups to two groups and enter the sample groups again."))
     end
-    group1_samplename=metadata[(1:(b-1))[metadata[:,2] .== uniq_metadata[1]],:][:,1]
-    group2_samplename=metadata[(1:(b-1))[metadata[:,2] .== uniq_metadata[2]],:][:,1]
+    group1_samplename=metadata[(1:md_r)[metadata[:,2] .== uniq_metadata[1]],:][:,1]
+    group2_samplename=metadata[(1:md_r)[metadata[:,2] .== uniq_metadata[2]],:][:,1]
     df_ctrl  = expr[!, (1:(b-1))[map(x -> ∈(x, group1_samplename), names(expr))] ]
     df_treat = expr[!, (1:(b-1))[map(x -> ∈(x, group2_samplename), names(expr))]]
     no_up_drop_df_ctrl_col = (sum.(eachcol(df_ctrl.>0)) .> cell_drop_rate)
