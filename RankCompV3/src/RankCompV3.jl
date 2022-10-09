@@ -493,7 +493,7 @@ function reoa(fn_expr::AbstractString,
     metadata = CSV.read(fn_metadata, DataFrame)
     md_r,md_c=size(metadata)
     if md_c != 2
-        println("ERROR: input ",basename("/home/yanj/jupyter_work/McCullagh/outcome_complete/data_outcome/20220426_outcome_yuan_delta/GSE59114_FDR0_05_0_5_0_record_nohkgene_metadata.txt")," less than 2 columns, please modify and input again.")
+        println("ERROR: input ",basename(fn_metadata)," less than 2 columns, please modify and input again.")
     end
     uniq_metadata=unique(metadata[:,2])
     if size(uniq_metadata)[1] != 2
