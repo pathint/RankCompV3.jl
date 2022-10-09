@@ -505,7 +505,7 @@ function reoa(fn_expr::AbstractString,
     df_treat = expr[!, (1:(b-1))[map(x -> ∈(x, group2_samplename), names(expr))]]
     no_up_drop_df_ctrl_col = (sum.(eachcol(df_ctrl.>0)) .> cell_drop_rate)
     no_up_drop_df_treat_col = (sum.(eachcol(df_treat.>0)) .> cell_drop_rate)
-    println("INFO: There were ",b-sum(no_up_drop_df_ctrl_col)-sum(no_up_drop_df_treat_col)," samples with the number of detected genes (non-0 value) less than ",cell_drop_rate,", and the samples were removed.")
+    println("INFO: There were ",md_r-sum(no_up_drop_df_ctrl_col)-sum(no_up_drop_df_treat_col)," samples with the number of detected genes (non-0 value) less than ",cell_drop_rate,", and the samples were removed.")
     df_ctrl = df_ctrl[:,(1:size(df_ctrl)[2])[no_up_drop_df_ctrl_col]]
     df_treat = df_treat[:,(1:size(df_treat)[2])[no_up_drop_df_treat_col]]
     no_up_drop_df_ctrl_row = (sum.(eachrow(df_ctrl.>0)) .> gene_drop_rate)
@@ -545,33 +545,39 @@ function reoa(fn_expr::AbstractString,
             names_sit = names_sit[ref_gene_sit]
             ref_gene = map(x -> ∈(x, names_sit), gene_names)
             ref_sum = length(names_sit)
-            print("INFO: The number of housekeeping genes was $(ref_sum_yuan), which was randomly selected and adjusted to $(ref_sum), ")
+            print("INFO: The number of housekeeping genes was $(ref_sum_yuan), which was randomly selected and adjusted to $(ref_sum)")
         else
             ref_sum = sum(ref_gene)
-            print("The number of housekeeping genes was $(ref_sum_yuan), ")
+            print("The number of housekeeping genes was $(ref_sum_yuan)")
         end
-        hk_nonhk = copy(gene_names)
-        hk_nonhk[ref_gene] .= "hk_gene"
-        hk_nonhk[.!ref_gene] .= "non_hk_gene"
-        exp_sit = DataFrame()
-        exp_sit[:,:gene_names] = gene_names
-        exp_sit[:, :gene_types] = hk_nonhk
-        exp_sit = [exp_sit df_ctrl df_treat]
-        ref_sum_non = sum((.!ref_gene))
-        gene_fn_out = string(fn_stem,"_hk_nonhk_gene.tsv")
-        CSV.write(gene_fn_out, exp_sit, delim = "\t")
-        println("and the number of non-housekeeping genes was $(ref_sum_non). The expression profile (gene name, housekeeping gene or not, and sample) was saved into $(gene_fn_out).")
-        c_t_min = min(c_ctrl,c_treat)
-        if c_ctrl > 3 .&& c_treat > 3
-            graph_num = rand_sit(3,c_t_min)
+        if ref_sum_yuan == 0
+            println(". \nWarning: The expression profile you entered does not contain the housekeeping gene provided by us. Therefore, we do not use housekeeping gene for subsequent analysis.")
+            ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
+            ref_gene_new = (.!ref_gene .|| ref_gene)
         else
-            graph_num = (1:c_t_min)
+            hk_nonhk = copy(gene_names)
+            hk_nonhk[ref_gene] .= "hk_gene"
+            hk_nonhk[.!ref_gene] .= "non_hk_gene"
+            exp_sit = DataFrame()
+            exp_sit[:,:gene_names] = gene_names
+            exp_sit[:, :gene_types] = hk_nonhk
+            exp_sit = [exp_sit df_ctrl df_treat]
+            ref_sum_non = sum((.!ref_gene))
+            gene_fn_out = string(fn_stem,"_hk_nonhk_gene.tsv")
+            CSV.write(gene_fn_out, exp_sit, delim = "\t")
+            println(", and the number of non-housekeeping genes was $(ref_sum_non). The expression profile (gene name, housekeeping gene or not, and sample) was saved into $(gene_fn_out).")
+            c_t_min = min(c_ctrl,c_treat)
+            if c_ctrl > 3 .&& c_treat > 3
+                graph_num = rand_sit(3,c_t_min)
+            else
+                graph_num = (1:c_t_min)
+            end
+            for i in graph_num
+                hk_non_hk_graph(exp_sit,names(df_ctrl)[i],fn_stem)
+                hk_non_hk_graph(exp_sit,names(df_treat)[i],fn_stem)
+            end
+            ref_gene_new = (ref_gene .&& ref_gene)
         end
-        for i in graph_num
-            hk_non_hk_graph(exp_sit,names(df_ctrl)[i],fn_stem)
-            hk_non_hk_graph(exp_sit,names(df_treat)[i],fn_stem)
-        end
-        ref_gene_new = (ref_gene .&& ref_gene)
     else
         ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
         ref_gene_new = (.!ref_gene .|| ref_gene)
