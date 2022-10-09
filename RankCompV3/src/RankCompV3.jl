@@ -456,12 +456,12 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
            hk_file::AbstractString = "$(joinpath(@__DIR__, "..", "hk_gene_file", "HK_genes_info.tsv"))",
            hk_name::AbstractString = "ENSEMBL",
       ref_gene_num::Int = 3000,
-    use_housekeeping::AbstractFloat = "yes",
+    use_housekeeping::AbstractString = "yes",
            species::AbstractString = "human",
     cell_drop_rate::Int = 0,
     gene_drop_rate::Int = 0,
     work_dir::AbstractString = "./",
-    use_testdata::AbstractFloat = "no"
+    use_testdata::AbstractString = "no"
     )
     """
     New implementation.
