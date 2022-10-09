@@ -17,7 +17,7 @@ using RCall
 @everywhere using ArgParse
 
 
-export reoa,reoa_test
+export reoa
 
 # Determine whether the required R package exists
 function check_R_packages()
@@ -468,7 +468,7 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
     """
     check_R_packages()
     cd(work_dir)
-    if use_testdata != "FALSE"
+    if use_testdata == "yes"
         fn_expr = "$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))"
         fn_metadata="$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))"
     end
@@ -605,11 +605,6 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
         ref_gene_new
         )
     return result
-end
-
-function reoa_test()
-    reoa("$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))",
-    "$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))")
 end
 
 end # module
