@@ -17,7 +17,7 @@ using RCall
 @everywhere using ArgParse
 
 
-export reoa,reoa_test
+export reoa
 
 # Determine whether the required R package exists
 function check_R_packages()
@@ -447,8 +447,8 @@ function reoa_update_housekeeping_gene(df_ctrl,
 end
 
 
-function reoa(fn_expr::AbstractString,
-        fn_metadata::AbstractString;
+function reoa(fn_expr::AbstractString="$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))",
+        fn_metadata::AbstractString="$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))";
     expr_threshold::Number = 3,
           pval_reo::AbstractFloat = 0.01,
      pval_sign_reo::AbstractFloat = 1.00,
@@ -602,9 +602,5 @@ function reoa(fn_expr::AbstractString,
     return result
 end
 
-function reoa_test()
-    reoa("$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))",
-    "$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))")
-end
 
 end # module
