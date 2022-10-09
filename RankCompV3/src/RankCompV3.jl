@@ -551,7 +551,7 @@ function reoa(fn_expr::AbstractString,
             print("The number of housekeeping genes was $(ref_sum_yuan)")
         end
         if ref_sum_yuan == 0
-            println(". \nWarning: The expression profile you entered does not contain the housekeeping gene provided by us. Therefore, we do not use housekeeping gene for subsequent analysis.")
+            println(". \nWARN: The expression profile you entered does not contain the housekeeping gene provided by us. Therefore, we do not use housekeeping gene for subsequent analysis.")
             ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
             ref_gene_new = (.!ref_gene .|| ref_gene)
         else
