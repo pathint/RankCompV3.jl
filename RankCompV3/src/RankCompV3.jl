@@ -173,7 +173,7 @@ function compare_reos(ctrl::AbstractMatrix,
     n_rep = c_ctrl + c_treat
 	println("INFO: Number of threads, $(Threads.nthreads())")
 	i_deg = (1:r_ctrl)[.!ref_gene]
-	i_ref = (1:r_ctrl)[  (ref_gene_new .|| ref_gene)]
+	i_ref = (1:r_ctrl)[  (ref_gene_new .| ref_gene)]
     data = ["delta" "nz_d"]
     writedlm("delta_nd_z.tsv", data, '\t')
     pval_t1 = pmap(i -> compute_pval(Int32(c_ctrl), 
@@ -372,7 +372,7 @@ function reoa_update_housekeeping_gene(df_ctrl,
     names1 = names1[pvals_nosingular_matrix_sit]
     pvals_num = (pvals .<= pval_reo)
     padj_num = (padj .<= padj_deg)
-    pvals_padj_sit = (pvals_num .&& padj_num)
+    pvals_padj_sit = (pvals_num .& padj_num)
     iteration_1_result = DataFrame()
     insertcols!(iteration_1_result, 1, :names => names1)
     insertcols!(iteration_1_result, 2, :delta => delta)
@@ -515,7 +515,7 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
     df_treat = df_treat[:,(1:size(df_treat)[2])[no_up_drop_df_treat_col]]
     no_up_drop_df_ctrl_row = (sum.(eachrow(df_ctrl.>0)) .> gene_drop_rate)
     no_up_drop_df_treat_row =(sum.(eachrow(df_treat.>0)) .> gene_drop_rate)
-    no_up_drop_row = (no_up_drop_df_ctrl_row .&& no_up_drop_df_treat_row)
+    no_up_drop_row = (no_up_drop_df_ctrl_row .& no_up_drop_df_treat_row)
     df_ctrl = df_ctrl[no_up_drop_row,:]
     df_treat = df_treat[no_up_drop_row,:]
     gene_names = gene_names[no_up_drop_row]
@@ -544,7 +544,7 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
         println("INFO: Successfully read in the house-keeping genes, with a size of: ", (c,1))
         ref_gene = map(x -> ∈(x, ref_gene), gene_names)
         ref_sum_yuan = sum(ref_gene)
-        if ref_sum_yuan > ref_gene_num && ref_gene_num < length(ref_gene)
+        if ref_sum_yuan > ref_gene_num & ref_gene_num < length(ref_gene)
             names_sit = gene_names[ref_gene]
             ref_gene_sit = rand_sit(ref_gene_num,ref_sum_yuan)
             names_sit = names_sit[ref_gene_sit]
@@ -558,7 +558,7 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
         if ref_sum_yuan == 0
             println(". \nWARN: The expression profile you entered does not contain the housekeeping gene provided by us. Therefore, we do not use housekeeping gene for subsequent analysis.")
             ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
-            ref_gene_new = (.!ref_gene .|| ref_gene)
+            ref_gene_new = (.!ref_gene .| ref_gene)
         else
             hk_nonhk = copy(gene_names)
             hk_nonhk[ref_gene] .= "hk_gene"
@@ -572,7 +572,7 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
             CSV.write(gene_fn_out, exp_sit, delim = "\t")
             println(", and the number of non-housekeeping genes was $(ref_sum_non). The expression profile (gene name, housekeeping gene or not, and sample) was saved into $(gene_fn_out).")
             c_t_min = min(c_ctrl,c_treat)
-            if c_ctrl > 3 .&& c_treat > 3
+            if c_ctrl > 3 .& c_treat > 3
                 graph_num = rand_sit(3,c_t_min)
             else
                 graph_num = (1:c_t_min)
@@ -581,11 +581,11 @@ function reoa(fn_expr::AbstractString = "fn_expr.txt",
                 hk_non_hk_graph(exp_sit,names(df_ctrl)[i],fn_stem)
                 hk_non_hk_graph(exp_sit,names(df_treat)[i],fn_stem)
             end
-            ref_gene_new = (ref_gene .&& ref_gene)
+            ref_gene_new = (ref_gene .& ref_gene)
         end
     else
         ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
-        ref_gene_new = (.!ref_gene .|| ref_gene)
+        ref_gene_new = (.!ref_gene .| ref_gene)
     end
     t_ctrl = get_major_reo_lower_count(c_ctrl , pval_reo)
     t_treat  = get_major_reo_lower_count(c_treat, pval_reo)
