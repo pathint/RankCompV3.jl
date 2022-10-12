@@ -1,8 +1,6 @@
 module RankCompV3
 
 using Pkg
-Pkg.activate("$(joinpath(@__DIR__, ".."))")
-Pkg.instantiate()
 using Distributed
 using SharedArrays
 using Base.Threads
