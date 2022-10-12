@@ -1,5 +1,6 @@
 module RankCompV3
 
+
 using Pkg
 using Distributed
 using SharedArrays
@@ -427,7 +428,7 @@ function reoa_update_housekeeping_gene(df_ctrl,
         ref_sum_non = sum((.!ref_gene_new))
         gene_fn_out = string(fn_stem,"_hk_nonhk_gene_",iteration_num,".tsv")
         CSV.write(gene_fn_out, exp_sit, delim = "\t")
-        println("INFO: the number of non-managed genes in the $(iteration_num)th iteration is $(ref_sum_non), the expression profile (gene name, whether to manage gene, sample) has been saved as $(gene_fn_out).")
+        println("INFO: The $(ref_sum_non) non-differential genes obtained in the $(iteration_num)th iteration were added to the list of non-housekeeping genes, and the expression profiles (gene name, housekeeping gene, sample) were saved into $(gene_fn_out).")
         iteration_num = iteration_num + 1
         return reoa_update_housekeeping_gene(df_ctrl,
         df_treat,
