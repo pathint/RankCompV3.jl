@@ -205,15 +205,15 @@ RankCompV3-software/bin/RankCompV3 --fn_expr "fn_expr.txt" --fn_metadata "fn_met
 
 #### log file
 
-### Application example
+### Demonstration
 
-#### code
+#### Application
 
-#### RankCompV3 package in julia
+##### RankCompV3 package in julia
 
 [Yanjj1/RankCompV3.jl](https://github.com/Yanjj1/RankCompV3)
 
-##### Use directly
+###### Use directly
 
 ```julia
 #For details about how to download the RankCompV3 package, see 4.
@@ -226,7 +226,7 @@ reoa("/public/yanj/data/fn_expr.txt",
 )
 ```
 
-##### Local run usage
+###### Local run usage
 
 ```julia
 #For details about how to download the RankCompV3 package, see 4.
@@ -239,7 +239,7 @@ reoa("/public/yanj/data/fn_expr.txt",
 )
 ```
 
-#### RankCompV3 software
+##### RankCompV3 software
 
 [Yanjj1/RankCompV3-software](https://github.com/Yanjj1/RankCompV3-software)
 
