@@ -41,8 +41,8 @@
 #### Package in R:
 
 ```R
-	ggplot2 (>= 3.3.6),
-	pheatmap (>= 1.0.12)
+    ggplot2 (>= 3.3.6),
+    pheatmap (>= 1.0.12)
 ```
 
 ### Configure
