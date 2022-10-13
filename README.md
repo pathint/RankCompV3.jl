@@ -105,11 +105,11 @@ unzip RankCompV3-software.zip
 
 ### Input File Description
 
-| File                         | Description                                                  |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Expression profile file ** | Each row represents the gene, each column represents the sample and the expression matrix of the gene in the first column. |
-| **Metadata file **           | First column sample name, second column group information.   |
-| **housekeeping gene file**   | Housekeeping gene file with built-in support for several gene forms: Name, REFSEQ, SYMBOL, ENTREZID, ENSEMBL, UNIGENE and GENENAME. Also supports external incoming or not using housekeeping gene files. |
+| File                        | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| **Expression profile file** | Each row represents the gene, each column represents the sample and the expression matrix of the gene in the first column. |
+| **Metadata file**           | First column sample name, second column group information.   |
+| **housekeeping gene file**  | Housekeeping gene file with built-in support for several gene forms: Name, REFSEQ, SYMBOL, ENTREZID, ENSEMBL, UNIGENE and GENENAME. Also supports external incoming or not using housekeeping gene files. |
 
 ### Usage
 
