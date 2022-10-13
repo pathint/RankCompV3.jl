@@ -274,7 +274,7 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
  	[fn_expr_hk_nonhk_gene_sample1.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample1.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV	3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
  	
  	[fn_expr_hk_nonhk_gene_sample4.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample4.pdf)
  	
@@ -296,19 +296,19 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
 - The distribution maps of delta, sd_delta, Pval and Padj of the whole genes.
 
-​		delta: 
+ 	delta: 
 
  	[fn_expr_0_delta_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_delta_graph.pdf)
 
-​		sd_delta: 
+ 	sd_delta: 
 
  	[fn_expr_0_sd_delta_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_sd_delta_graph.pdf)
 
-​		*p*-value: 
+ 	*p*-value: 
 
  	[fn_expr_0_Pval_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Pval_graph.pdf)
 
-​		FDR: 
+ 	FDR: 
 
  	[fn_expr_0_Padj_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Padj_graph.pdf)
 
@@ -336,4 +336,4 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
 ### Suggestion and Issue Reporting
 
-​	Any suggestion or issue reporting is welcome! You can contact yanjer123@qq.com. 
+ 	Any suggestion or issue reporting is welcome! You can contact yanjer123@qq.com. 
