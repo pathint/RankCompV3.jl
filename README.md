@@ -332,8 +332,8 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
 #### log file
 
- 	[RankCompV3-test-data-output.log](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3-test-data-output.log)
+[RankCompV3-test-data-output.log](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3-test-data-output.log)
 
 ### Suggestion and Issue Reporting
 
- 	Any suggestion or issue reporting is welcome! You can contact yanjer123@qq.com. 
+Any suggestion or issue reporting is welcome! You can contact yanjer123@qq.com. 
