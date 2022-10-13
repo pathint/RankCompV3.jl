@@ -273,15 +273,15 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 - Three samples were randomly selected from each group to draw the expression distribution map of housekeeping gene in the samples.
 
  	[fn_expr_hk_nonhk_gene_sample1.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample1.pdf)
-
+ 	
  	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV	3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
-
+ 	
  	[fn_expr_hk_nonhk_gene_sample4.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample4.pdf)
-
+ 	
  	[fn_expr_hk_nonhk_gene_sample5.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample5.pdf)
-
+ 	
  	[fn_expr_hk_nonhk_gene_sample6.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample6.pdf)
-
+ 	
  	[fn_expr_hk_nonhk_gene_sample8.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample8.pdf)
 
 - Gene expression profile files of labeled housekeeping genes, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
