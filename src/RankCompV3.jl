@@ -1,6 +1,6 @@
 module RankCompV3
 
-
+using Pkg
 using Distributed
 using SharedArrays
 using Base.Threads
