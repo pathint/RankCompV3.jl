@@ -10,7 +10,7 @@ using DelimitedFiles
 using CSV
 using Statistics
 using RCall
-@everywhere using HypothesisTests
+using HypothesisTests
 @everywhere using Distributions
 @everywhere using Random
 @everywhere using LinearAlgebra
