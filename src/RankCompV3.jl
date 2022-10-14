@@ -11,10 +11,10 @@ using CSV
 using Statistics
 using RCall
 using HypothesisTests
-@everywhere using Distributions
-@everywhere using Random
-@everywhere using LinearAlgebra
-@everywhere using ArgParse
+using Distributions
+using Random
+using LinearAlgebra
+using ArgParse
 
 
 export reoa
