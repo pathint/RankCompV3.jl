@@ -2,9 +2,9 @@
 
 ​	RankCompV3 is a differentially expressed gene recognition algorithm based on relative expression order relation REO. The tool is developed based on the julia language, and the software is available for direct use. The details are described below. julia recommends using version 1.7 or later.
 
-**RankCompV3 package in julia：https://github.com/Yanjj1/RankCompV3.jl.git**
+**RankCompV3 package in julia：https://github.com/yanjer/RankCompV3.jl.git**
 
-**RankCompV3 software：https://github.com/Yanjj1/RankCompV3-software.git**
+**RankCompV3 software：https://github.com/yanjer/RankCompV3-software.git**
 
 ### Scope of application of RankCompV3
 
@@ -57,7 +57,7 @@ using Pkg
 #The RankCompV3 package is required for the first use
 Pkg.add("RankCompV3")
 #or
-Pkg.add(url="https://github.com/Yanjj1/RankCompV3.jl.git")
+Pkg.add(url="https://github.com/yanjer/RankCompV3.jl.git")
 ```
 
 ##### Local run usage
@@ -65,20 +65,20 @@ Pkg.add(url="https://github.com/Yanjj1/RankCompV3.jl.git")
 ```shell
 #configured in linux
 #clone the RankCompV3 package from github to local
-git clone https://github.com/Yanjj1/RankCompV3.jl.git
+git clone https://github.com/yanjer/RankCompV3.jl.git
 #Load the project dependency package
-#[path] is the path from git clone https://github.com/Yanjj1/RankCompV3.git
+#[path] is the path from git clone https://github.com/yanjer/RankCompV3.git
 julia --project=RankCompV3 [path]/RankCompV3/src/RankCompV3.jl
 ```
 
 #### RankCompV3 software
 
-[Yanjj1/RankCompV3-software](https://github.com/Yanjj1/RankCompV3-software)
+[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #configured in linux
 #clone RankCompV3 software from github to local
-git clone https://github.com/Yanjj1/RankCompV3-software.git
+git clone https://github.com/yanjer/RankCompV3-software.git
 #unzip
 unzip RankCompV3-software.zip
 ```
@@ -97,7 +97,7 @@ unzip RankCompV3-software.zip
 | hk_name          | AbstractString               | ENSEMBL           | Column name of the  column where the housekeeping gene is located. |
 | ref_gene_num     | Int                          | 3000              | The upper limit of  the number of housekeeping genes, if it is greater than this value,  ref_gene_num housekeeping genes are randomly selected from it. |
 | use_housekeeping | AbstractString               | yes               | Do not use  housekeeping gene to set 1, use housekeeping gene to set 0. |
-| species          | AbstractString               | human             | Data for species information, current housekeeping genes support only human and mouse species.Click [human](https://github.com/Yanjj1/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv) or [mouse](https://github.com/Yanjj1/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info_mouse.tsv) to see the housekeeping gene file. |
+| species          | AbstractString               | human             | Data for species information, current housekeeping genes support only human and mouse species.Click [human](https://github.com/yanjer/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv) or [mouse](https://github.com/yanjer/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info_mouse.tsv) to see the housekeeping gene file. |
 | cell_drop_rate   | Int                          | 0                 | At least how many genes were detected in each sample. (value non-zero). |
 | gene_drop_rate   | Int                          | 0                 | At least how many cells each gene was  detected in (value non-zero). |
 | work_dir         | AbstractString               | ./                | Working Directory.                                           |
@@ -115,7 +115,7 @@ unzip RankCompV3-software.zip
 
 #### RankCompV3 package in julia
 
-[Yanjj1/RankCompV3.jl](https://github.com/Yanjj1/RankCompV3)
+[yanjer/RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ##### Use directly
 
@@ -167,7 +167,7 @@ reoa("expr.txt",
 
 #### RankCompV3 software
 
-[Yanjj1/RankCompV3-software](https://github.com/Yanjj1/RankCompV3-software)
+[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #Used in linux
@@ -211,7 +211,7 @@ RankCompV3-software/bin/RankCompV3 --fn_expr "fn_expr.txt" --fn_metadata "fn_met
 
 ##### RankCompV3 package in julia
 
-[Yanjj1/RankCompV3.jl](https://github.com/Yanjj1/RankCompV3)
+[yanjer/RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ###### Use directly
 
@@ -241,7 +241,7 @@ reoa("/public/yanj/data/fn_expr.txt",
 
 ##### RankCompV3 software
 
-[Yanjj1/RankCompV3-software](https://github.com/Yanjj1/RankCompV3-software)
+[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #See the help
@@ -256,15 +256,15 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
 - Expression profile file  
 
- 	[fn_expr.txt](https://github.com/Yanjj1/RankCompV3.jl/blob/master/RankCompV3/test/fn_expr.txt)
+ 	[fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/test/fn_expr.txt)
 
 - metadata file
 
- 	[fn_metadata.txt](https://github.com/Yanjj1/RankCompV3.jl/blob/master/RankCompV3/test/fn_metadata.txt)
+ 	[fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/test/fn_metadata.txt)
 
 - Housekeeping gene file (built-in, also supported for re-provisioning)
 
- 	[HK_genes_info.tsv](https://github.com/Yanjj1/RankCompV3.jl/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv)
+ 	[HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv)
 
 #### Resulting file
 
@@ -272,67 +272,67 @@ RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadat
 
 - Three samples were randomly selected from each group to draw the expression distribution map of housekeeping gene in the samples.
 
- 	[fn_expr_hk_nonhk_gene_sample1.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample1.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample1.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample4.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample4.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample4.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample4.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample5.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample5.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample5.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample5.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample6.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample6.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample6.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample6.pdf)
  	
- 	[fn_expr_hk_nonhk_gene_sample8.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample8.pdf)
+ 	[fn_expr_hk_nonhk_gene_sample8.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample8.pdf)
 
 - Gene expression profile files of labeled housekeeping genes, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
- 	[fn_expr_hk_nonhk_gene.tsv](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene.tsv)
+ 	[fn_expr_hk_nonhk_gene.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene.tsv)
 
 ##### Each iteration produces six files. (Only the results of the 0th iteration are shown below)
 
 - The differential gene result file obtained in this iteration. Among them, there are 5 columns, each column is gene name, delta, sd_delta, p, FDR.
 
- 	[fn_expr_iteration_0_result.tsv](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_iteration_0_result.tsv)
+ 	[fn_expr_iteration_0_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_iteration_0_result.tsv)
 
 - The distribution maps of delta, sd_delta, Pval and Padj of the whole genes.
 
  	delta: 
-
- 	[fn_expr_0_delta_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_delta_graph.pdf)
-
+ 	
+ 	[fn_expr_0_delta_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_delta_graph.pdf)
+ 	
  	sd_delta: 
-
- 	[fn_expr_0_sd_delta_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_sd_delta_graph.pdf)
-
+ 	
+ 	[fn_expr_0_sd_delta_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_sd_delta_graph.pdf)
+ 	
  	*p*-value: 
-
- 	[fn_expr_0_Pval_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Pval_graph.pdf)
-
+ 	
+ 	[fn_expr_0_Pval_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Pval_graph.pdf)
+ 	
  	FDR: 
-
- 	[fn_expr_0_Padj_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Padj_graph.pdf)
+ 	
+ 	[fn_expr_0_Padj_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Padj_graph.pdf)
 
 - The gene expression profile file of the marker housekeeping gene in this iteration, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
- 	[fn_expr_hk_nonhk_gene_0.tsv](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_0.tsv)
+ 	[fn_expr_hk_nonhk_gene_0.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_0.tsv)
 
 ##### Final output file after differential gene stabilization.
 
 - The final calculation results (gene name, delta, sd_delta, p, FDR) without threshold screening.
 
- 	[fn_expr_deg_exp.tsv](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp.tsv)
+ 	[fn_expr_deg_exp.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp.tsv)
 
 - Differential gene expression profile.
 
- 	[fn_expr_result.tsv](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv)
+ 	[fn_expr_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv)
 
 - Differential gene expression heat map file.
 
- 	[fn_expr_deg_exp_graph.pdf](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp_graph.pdf)
+ 	[fn_expr_deg_exp_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp_graph.pdf)
 
 #### log file
 
-[RankCompV3-test-data-output.log](https://github.com/Yanjj1/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3-test-data-output.log)
+[RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3-test-data-output.log)
 
 ### Suggestion and Issue Reporting
 
