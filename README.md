@@ -73,7 +73,7 @@ julia --project=RankCompV3 [path]/RankCompV3/src/RankCompV3.jl
 
 #### RankCompV3 software
 
-[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #configured in linux
@@ -91,7 +91,7 @@ unzip RankCompV3-software.zip
 | fn_metadata      | AbstractStringAbstractString | fn_metadata.txt   | Grouping information file path. (required)                   |
 | expr_threshold   | NumberNumber                 | 0                 | Gene expression threshold.                                   |
 | pval_reo         | AbstractFloatAbstractFloat   | 0.01              | Stable threshold for p-value.                                |
-| pval_sign_reo    | AbstractFloatAbstractFloat   | 1                 | Significant  reversal threshold for p-value.                 |
+| pval_sign_reo    | AbstractFloatAbstractFloat   | 1.00              | Significant  reversal threshold for p-value.                 |
 | padj_sign_reo    | AbstractFloatAbstractFloat   | 0.05              | Significant reversal threshold for FDR  value.               |
 | hk_file          | AbstractString               | HK_genes_info.tsv | Housekeeper gene  file path.                                 |
 | hk_name          | AbstractString               | ENSEMBL           | Column name of the  column where the housekeeping gene is located. |
@@ -115,7 +115,7 @@ unzip RankCompV3-software.zip
 
 #### RankCompV3 package in julia
 
-[yanjer/RankCompV3.jl](https://github.com/yanjer/RankCompV3)
+[RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ##### Use directly
 
@@ -131,7 +131,7 @@ RankCompV3.reoa("expr.txt",
            hk_file = "HK_genes_info.tsv",
            hk_name = "ENSEMBL",
       ref_gene_num = 3000,
-    no_use_housekeeping = 0,
+    use_housekeeping = "yes",
            species = "human",
     cell_drop_rate = 0,
     gene_drop_rate = 0,
@@ -156,7 +156,7 @@ reoa("expr.txt",
            hk_file = "HK_genes_info.tsv",
            hk_name = "ENSEMBL",
       ref_gene_num = 3000,
-    no_use_housekeeping = 0,
+    use_housekeeping = "yes",
            species = "human",
     cell_drop_rate = 0,
     gene_drop_rate = 0,
@@ -167,7 +167,7 @@ reoa("expr.txt",
 
 #### RankCompV3 software
 
-[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #Used in linux
@@ -211,7 +211,7 @@ RankCompV3-software/bin/RankCompV3 --fn_expr "fn_expr.txt" --fn_metadata "fn_met
 
 ##### RankCompV3 package in julia
 
-[yanjer/RankCompV3.jl](https://github.com/yanjer/RankCompV3)
+[RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ###### Use directly
 
@@ -241,7 +241,7 @@ reoa("/public/yanj/data/fn_expr.txt",
 
 ##### RankCompV3 software
 
-[yanjer/RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #See the help
