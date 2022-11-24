@@ -1,10 +1,10 @@
 ## RankCompV3
 
-​	RankCompV3 is a differentially expressed gene recognition algorithm based on relative expression order relation REO. The tool is developed based on the julia language, and the software is available for direct use. The details are described below. julia recommends using version 1.7 or later.
+​	RankCompV3 is a differentially expressed gene recognition algorithm based on relative expression order relation REO. The tool is developed based on the julia language, and the executable file is available for direct use. The details are described below. julia recommends using version 1.7 or later.
 
 **RankCompV3 package in julia：https://github.com/yanjer/RankCompV3.jl.git**
 
-**RankCompV3 software：https://github.com/yanjer/RankCompV3-software.git**
+**Executable file for RanikCompV3：https://github.com/yanjer/RankCompV3-software.git**
 
 ### Scope of application of RankCompV3
 
@@ -71,13 +71,13 @@ git clone https://github.com/yanjer/RankCompV3.jl.git
 julia --project=RankCompV3 [path]/RankCompV3/src/RankCompV3.jl
 ```
 
-#### RankCompV3 software
+#### Executable file for RanikCompV3
 
-[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #configured in linux
-#clone RankCompV3 software from github to local
+#Clone the executable file RanikCompV3 from github to local
 git clone https://github.com/yanjer/RankCompV3-software.git
 #unzip
 unzip RankCompV3-software.zip
@@ -165,9 +165,9 @@ reoa("expr.txt",
     )
 ```
 
-#### RankCompV3 software
+#### Executable file for RanikCompV3
 
-[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #Used in linux
@@ -239,9 +239,9 @@ reoa("/public/yanj/data/fn_expr.txt",
 )
 ```
 
-##### RankCompV3 software
+##### Executable file for RanikCompV3
 
-[RankCompV3-software](https://github.com/yanjer/RankCompV3-software)
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
 
 ```shell
 #See the help

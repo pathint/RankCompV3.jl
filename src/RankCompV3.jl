@@ -14,7 +14,7 @@ using HypothesisTests
 using Distributions
 using Random
 using LinearAlgebra
-using ArgParse
+using Parsers
 
 
 export reoa
@@ -449,7 +449,7 @@ end
 
 function reoa(fn_expr::AbstractString = "fn_expr.txt",
         fn_metadata::AbstractString = "fn_metadata.txt";
-    expr_threshold::Number = 3,
+    expr_threshold::Number = 0,
           pval_reo::AbstractFloat = 0.01,
      pval_sign_reo::AbstractFloat = 1.00,
      padj_sign_reo::AbstractFloat = 0.05,

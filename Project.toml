@@ -1,7 +1,7 @@
 name = "RankCompV3"
 uuid = "4cb800f8-6e34-42b5-a258-cba768800361"
 authors = ["yan jing <yanjer123@qq.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
@@ -13,6 +13,7 @@ Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MultipleTesting = "f8716d33-7c4a-5097-896f-ce0ecbd3ef6b"
+Parsers = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -26,5 +27,6 @@ DataFrames = "1.2.2"
 Distributions = "0.25.29"
 HypothesisTests = "0.10.6"
 MultipleTesting = "0.5.0"
+Parsers = "2.4.2"
 RCall = "0.13.13"
 julia = "1.7"
