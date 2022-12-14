@@ -35,7 +35,7 @@
     Distributions (>= v0.25.75),
     Random,
     LinearAlgebra,
-    ArgParse (>= v1.1.4)
+    Parsers (v2.4.2)
 ```
 
 #### Package in R:
