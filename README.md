@@ -70,7 +70,7 @@ Once the files are ready, you can carry out the DEG analysis with the default se
 julia> using RankCompV3
 # Use the default values for the following other parameters. If you want to modify the parameters, add them directly.
 julia> reoa("/public/yanj/data/fn_expr.txt",
-		"/public/yanj/data/fn_metadata.txt")
+	"/public/yanj/data/fn_metadata.txt")
 ```
 
 Other parameters can be set by passing the value to the corresponding keyword. 
