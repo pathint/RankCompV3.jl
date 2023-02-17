@@ -1,7 +1,7 @@
 name = "RankCompV3"
 uuid = "90449987-83dc-4cd9-ae99-cbb4b10fd24f"
 authors = ["yan jing <yanjer123@qq.com>"]
-version = "0.1.0"
+version = "0.1.2"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
