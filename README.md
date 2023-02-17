@@ -253,86 +253,85 @@ reoa("/public/yanj/data/fn_expr.txt",
 #### Input File
 
 - Expression profile file  
-
-[fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
+  - [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
 
 - metadata file
 
-[fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
+  - [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
 
 - Housekeeping gene file (built-in, also supported for re-provisioning)
 
-[HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/hk_gene_file/HK_genes_info.tsv)
+  - [HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/hk_gene_file/HK_genes_info.tsv)
 
 #### Resulting file
 
-##### 1、fn_expr_ctrl.tsv
+- fn_expr_ctrl.tsv
 
 This file is the expression profile of the ctrl group.
 
 [fn_expr_ctrl.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_ctrl.tsv)
 
-##### 2、fn_expr_treat.tsv
+- fn_expr_treat.tsv
 
 This file is the expression profile of the treat group.
 
 [fn_expr_treat.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_treat.tsv)
 
-##### 3、fn_expr_result.tsv
+- fn_expr_result.tsv
 
 This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1.
 
 [fn_expr_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv)
 
-##### 4、fn_expr_expr_dist.pdf
+- fn_expr_expr_dist.pdf
 
 This file displays a graph of Distribution of Expression Values.
 
 [fn_expr_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_dist.pdf)
 
-##### 5、fn_expr_expr_heat.pdf
+- fn_expr_expr_heat.pdf
 
 This file shows heat maps of expression values for the ctrl and treat groups.
 
 [fn_expr_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_heat.pdf)
 
-##### 6、fn_expr_contigency_table.pdf
+- fn_expr_contigency_table.pdf
 
 This file shows the distribution of parameters in 3 x 3 contingency tables.
 
 [fn_expr_contigency_table.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_contigency_table.pdf)
 
-##### 7、fn_expr_delta_value.pdf
+- fn_expr_delta_value.pdf
 
 This file shows the delta distribution.
 
 [fn_expr_delta_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_delta_value.pdf)
 
-##### 8、fn_expr_se.pdf
+- fn_expr_se.pdf
 
 This file shows the distribution of Standard Error (SE).
 
 [fn_expr_se.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_se.pdf)
 
-##### 9、fn_expr_z1.pdf
+- fn_expr_z1.pdf
 
 This file shows the z1 distribution.
 
 [fn_expr_z1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_z1.pdf)
 
-##### 10、fn_expr_p_value.pdf
+- fn_expr_p_value.pdf
 
 This file shows the distribution of p and fdr values.
 
 [fn_expr_p_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_p_value.pdf)
 
-##### 11、fn_expr_degs_expr_dist.pdf
+- fn_expr_degs_expr_dist.pdf
 
 This file shows the distribution of expression values for DEGs.
 
 [fn_expr_degs_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_dist.pdf)
 
-##### 12、fn_expr_degs_expr_heat.pdf
+- fn_expr_degs_expr_heat.pdf
 
 This file shows a heat map of the expression values of DEGs in the ctrl and treat groups.
 
@@ -340,7 +339,7 @@ This file shows a heat map of the expression values of DEGs in the ctrl and trea
 
 #### log file
 
-[RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
+- [RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
 
 ### Suggestion and Issue Reporting
 
