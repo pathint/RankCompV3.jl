@@ -1,39 +1,48 @@
 ## RankCompV3
 
-​	RankCompV3 is a differentially expressed gene recognition algorithm based on relative expression order relation REO. The tool is developed based on the julia language. The details are described below. julia recommends using version 1.7 or later.
+​	RankCompV3 is a differentially expressed gene recognition algorithm based on relative expression order relation REO. The tool is developed based on the julia language, and the executable file is available for direct use. The details are described below. julia recommends using version 1.7 or later.
 
-**RankCompV3 package in julia：https://github.com/pathint/RankCompV3.jl**
+**RankCompV3 package in julia：https://github.com/yanjer/RankCompV3.jl.git**
+
+**Executable file for RanikCompV3：https://github.com/yanjer/RankCompV3-software.git**
 
 ### Scope of application of RankCompV3
 
 | Classification                              | Applicable scope                                             |
 | ------------------------------------------- | ------------------------------------------------------------ |
 | **Species**                                 | Unrestricted species                                         |
-| **Species supported by housekeeping genes** | human                                                        |
-| **Data type**                               | Microarray data, high-throughput sequencing data (RNA-seq), single-cell sequencing data (scRNA-seq), Cell expression by linear amplification and sequencing (CEL-seq) , methylation data and proteome data, etc |
-| **Data format**                             | Count/log2Count/FPKM/RPKM/TPM/Expression values, etc         |
+| **Species supported by housekeeping genes** | human/mouse                                                  |
+| **Data type**                               | Microarray data, high-throughput sequencing data (RNA-seq), single-cell sequencing data (scRNA-seq), Cell expression by linear amplification and sequencing (CEL-seq) , methylation data and proteome data |
+| **Data format**                             | Count/log2Count/FPKM/RPKM/TPM/Expression values              |
 | **Genotype**                                | REFSEQ/SYMBOL/ENTREZID/ENSEMBL/UNIGENE/GENENAME              |
 
 ### Tool Dependency package
 
-​	**Where julia related software packages have been added to the environment. **
+​	**Where julia related software packages have been added to the environment. The software packages related to the R language will be downloaded automatically, or you can download them manually.**
+
+#### Package in julia:
 
 ```julia
-CSV v0.10.9
-CategoricalArrays v0.10.7
-DataFrames v1.4.4
-Distributions v0.25.80
-HypothesisTests v0.10.11
-MultipleTesting v0.5.1
-Plots v1.38.4
-StatsBase v0.33.21
-StatsPlots v0.15.4
-DelimitedFiles
-Distributed
-LinearAlgebra
-Random
-SharedArrays
-Statistics
+    Distributed,
+    SharedArrays,
+    MultipleTesting (>= v0.5.1),
+    DataFrames (>= v1.4.1),
+    DelimitedFiles,
+    CSV (>= v0.10.4),
+    Statistics,
+    RCall (>= v0.13.13),
+    HypothesisTests (>= v0.10.10),
+    Distributions (>= v0.25.75),
+    Random,
+    LinearAlgebra,
+    Parsers (v2.4.2)
+```
+
+#### Package in R:
+
+```R
+    ggplot2 (>= 3.3.6),
+    pheatmap (>= 1.0.12)
 ```
 
 ### Configure
@@ -48,7 +57,7 @@ using Pkg
 #The RankCompV3 package is required for the first use
 Pkg.add("RankCompV3")
 #or
-Pkg.add(url="https://github.com/pathint/RankCompV3.jl.git")
+Pkg.add(url="https://github.com/yanjer/RankCompV3.jl.git")
 ```
 
 ##### Local run usage
@@ -56,37 +65,43 @@ Pkg.add(url="https://github.com/pathint/RankCompV3.jl.git")
 ```shell
 #configured in linux
 #clone the RankCompV3 package from github to local
-git clone https://github.com/pathint/RankCompV3.jl.git
+git clone https://github.com/yanjer/RankCompV3.jl.git
 #Load the project dependency package
 #[path] is the path from git clone https://github.com/yanjer/RankCompV3.git
-julia --project=RankCompV3
-#Download dependency packages
-##Enter Pkg mode. ]
-instantiate
+julia --project=RankCompV3 [path]/RankCompV3/src/RankCompV3.jl
+```
+
+#### Executable file for RanikCompV3
+
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
+
+```shell
+#configured in linux
+#Clone the executable file RanikCompV3 from github to local
+git clone https://github.com/yanjer/RankCompV3-software.git
+#unzip
+unzip RankCompV3-software.zip
 ```
 
 ### Parameters for details
 
-| Parameter      | Parameter types              | Default value     | Parameters to describe                                       |
-| -------------- | ---------------------------- | ----------------- | ------------------------------------------------------------ |
-| fn_expr        | AbstractString               | fn_expr.txt       | Gene expression profile file path. (required)                |
-| fn_metadata    | AbstractStringAbstractString | fn_metadata.txt   | Grouping information file path. (required)                   |
-| expr_threshold | NumberNumber                 | 0                 | Gene expression threshold.                                   |
-| min_profiles   | Int                          | 0                 | Include features (genes) detected in at least this many cells. |
-| min_features   | Int                          | 0                 | Include profiles (cells) where at least this many features are detected. |
-| pval_reo       | AbstractFloatAbstractFloat   | 0.01              | Stable threshold for p-value.                                |
-| pval_deg       | AbstractFloatAbstractFloat   | 0.05              | Significant  reversal threshold for p-value.                 |
-| padj_deg       | AbstractFloatAbstractFloat   | 0.05              | Significant reversal threshold for FDR  value.               |
-| use_pseudobulk | Int                          | 0                 | 0 for not using pseudobulk mode, 1 for automatic, 2~5 not used, 6~100 for number of pseudobulk profiles in each group. |
-| use_hk_genes   | AbstractString               | yes               | Whether to use the housekeeping gene, yes or no.             |
-| hk_file        | AbstractString               | HK_genes_info.tsv | Housekeeper gene  file path.                                 |
-| gene_name_type | AbstractString               | ENSEMBL           | Available choices: ENSEMBL, Symbol, ENTREZID ...             |
-| ref_gene_max   | Int                          | 3000              | If the number of available features is higher than this, take a random sample of this size. |
-| refinement     | Int                          | 100               | If the number is lower than this, ignore the house-keeping genes. |
-| n_iter         | Int                          | 128               | Max iterations.                                              |
-| n_conv         | Int                          | 5                 | Convergence condition: max. difference in the number of DEGs between two consective iterations |
-| work_dir       | AbstractString               | ./                | Working Directory.                                           |
-| use_testdata   | AbstractString               | no                | Whether to use the default provided test data for analysis, yes or no. |
+| Parameter        | Parameter types              | Default value     | Parameters to describe                                       |
+| ---------------- | ---------------------------- | ----------------- | ------------------------------------------------------------ |
+| fn_expr          | AbstractString               | fn_expr.txt       | Gene expression profile file path. (required)                |
+| fn_metadata      | AbstractStringAbstractString | fn_metadata.txt   | Grouping information file path. (required)                   |
+| expr_threshold   | NumberNumber                 | 0                 | Gene expression threshold.                                   |
+| pval_reo         | AbstractFloatAbstractFloat   | 0.01              | Stable threshold for p-value.                                |
+| pval_sign_reo    | AbstractFloatAbstractFloat   | 1.00              | Significant  reversal threshold for p-value.                 |
+| padj_sign_reo    | AbstractFloatAbstractFloat   | 0.05              | Significant reversal threshold for FDR  value.               |
+| hk_file          | AbstractString               | HK_genes_info.tsv | Housekeeper gene  file path.                                 |
+| hk_name          | AbstractString               | ENSEMBL           | Column name of the  column where the housekeeping gene is located. |
+| ref_gene_num     | Int                          | 3000              | The upper limit of  the number of housekeeping genes, if it is greater than this value,  ref_gene_num housekeeping genes are randomly selected from it. |
+| use_housekeeping | AbstractString               | yes               | Do not use  housekeeping gene to set 1, use housekeeping gene to set 0. |
+| species          | AbstractString               | human             | Data for species information, current housekeeping genes support only human and mouse species.Click [human](https://github.com/yanjer/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv) or [mouse](https://github.com/yanjer/RankCompV3/blob/master/RankCompV3/hk_gene_file/HK_genes_info_mouse.tsv) to see the housekeeping gene file. |
+| cell_drop_rate   | Int                          | 0                 | At least how many genes were detected in each sample. (value non-zero). |
+| gene_drop_rate   | Int                          | 0                 | At least how many cells each gene was  detected in (value non-zero). |
+| work_dir         | AbstractString               | ./                | Working Directory.                                           |
+| use_testdata     | AbstractString               | no                | Whether to use the default provided test data for analysis, yes or no. |
 
 ### Input File Description
 
@@ -100,29 +115,24 @@ instantiate
 
 #### RankCompV3 package in julia
 
-[RankCompV3.jl](https://github.com/pathint/RankCompV3.jl)
+[RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ##### Use directly
 
 ```julia
 using RankCompV3
-#runing code, the default values shown below can be used accordingly.
-reoa("expr.txt",
-    "metadata.txt";
+#runing code
+RankCompV3.reoa("expr.txt",
+        "metadata.txt";
     expr_threshold = 0,
-    min_profiles = 0,
-    min_features = 0,
-    pval_reo = 0.01,
-     pval_deg = 1.00,
-     padj_deg = 0.05,
-    use_pseudobulk = 0,
-    use_hk_genes = "yes"
-    hk_file = "HK_genes_info.tsv",
-    gene_name_type = "ENSEMBL",
-    ref_gene_max = 3000,
-    ref_gene_min = 100
-    n_iter = 128,
-    n_conv = 5,
+          pval_reo = 0.01,
+     pval_sign_reo = 1.00,
+     padj_sign_reo = 0.05,
+           hk_file = "HK_genes_info.tsv",
+           hk_name = "ENSEMBL",
+      ref_gene_num = 3000,
+    use_housekeeping = "yes",
+           species = "human",
     cell_drop_rate = 0,
     gene_drop_rate = 0,
     work_dir = "./",
@@ -133,84 +143,65 @@ reoa("expr.txt",
 ##### Local run usage
 
 ```julia
-#Load the RankCompV3 package in julia. [path] indicates the storage path.
+#Load the RankCompV3 package in julia
 include("[path]/RankCompV3/src/RankCompV3.jl")
 using Main.RankCompV3
-#runing code, the default values shown below can be used accordingly.
+#runing code
 reoa("expr.txt",
-    "metadata.txt";
+     "metadata.txt";
     expr_threshold = 0,
-    min_profiles = 0,
-    min_features = 0,
-    pval_reo = 0.01,
-     pval_deg = 1.00,
-     padj_deg = 0.05,
-    use_pseudobulk = 0,
-    use_hk_genes = "yes"
-    hk_file = "HK_genes_info.tsv",
-    gene_name_type = "ENSEMBL",
-    ref_gene_max = 3000,
-    ref_gene_min = 100
-    n_iter = 128,
-    n_conv = 5,
+          pval_reo = 0.01,
+     pval_sign_reo = 1.00,
+     padj_sign_reo = 0.05,
+           hk_file = "HK_genes_info.tsv",
+           hk_name = "ENSEMBL",
+      ref_gene_num = 3000,
+    use_housekeeping = "yes",
+           species = "human",
     cell_drop_rate = 0,
     gene_drop_rate = 0,
-    work_dir = "./",
+    work_dir = "./",,
     use_testdata = "no"
     )
+```
+
+#### Executable file for RanikCompV3
+
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
+
+```shell
+#Used in linux
+#See the help
+RankCompV3-software/bin/RankCompV3 -h
+#runing code
+RankCompV3-software/bin/RankCompV3 --fn_expr "fn_expr.txt" --fn_metadata "fn_metadata.txt" --expr_threshold 0 --pval_reo 0.01 --pval_sign_reo 1.00 --padj_sign_reo 0.05 --hk_file "/home/yanj/jupyter_work/McCullagh/outcome_complete/HK_genes_info.tsv" --hk_name "ENSEMBL" --ref_gene_num 3000 --use_housekeeping "yes" --species "human" --cell_drop_rate 0 --gene_drop_rate 0 --work_dir ./ --use_testdata "no"
 ```
 
 ### Output File Description
 
 #### Resulting file
 
-##### 1、fn_expr_ctrl.tsv
+##### With the housekeeping gene, the following seven files are generated. Otherwise, it is not generated.
 
-This file is the expression profile of the ctrl group.
+- Three samples were randomly selected from each group to draw the expression distribution map of housekeeping gene in the samples.
 
-##### 2、fn_expr_treat.tsv
+- Gene expression profile files of labeled housekeeping genes, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
-This file is the expression profile of the treat group.
+##### Each iteration produces six files.
 
-##### 3、fn_expr_result.tsv
+- The differential gene result file obtained in this iteration. Among them, there are 5 columns, each column is gene name, delta, sd_delta, p, FDR.
 
-This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1.
+- The distribution maps of delta, sd_delta, Pval and Padj of the whole genes.
 
-##### 4、fn_expr_expr_dist.pdf
+- The gene expression profile file of the marker housekeeping gene in this iteration, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
-This file displays a graph of Distribution of Expression Values.
+##### Final output file after differential gene stabilization.
 
-##### 5、fn_expr_expr_heat.pdf
+- The final calculation results (gene name, delta, sd_delta, p, FDR) without threshold screening.
 
-This file shows heat maps of expression values for the ctrl and treat groups.
+- Differential gene expression profile.
 
-##### 6、fn_expr_contigency_table.pdf
-
-This file shows the distribution of parameters in 3 x 3 contingency tables.
-
-##### 7、fn_expr_delta_value.pdf
-
-This file shows the delta distribution.
-
-##### 8、fn_expr_se.pdf
-
-This file shows the distribution of Standard Error (SE).
-
-##### 9、fn_expr_z1.pdf
-
-This file shows the z1 distribution.
-
-##### 10、fn_expr_p_value.pdf
-
-This file shows the distribution of p and fdr values.
-
-##### 11、fn_expr_degs_expr_dist.pdf
-
-This file shows the distribution of expression values for DEGs.
-
-##### 12、fn_expr_degs_expr_heat.pdf
-
-This file shows a heat map of the expression values of DEGs in the ctrl and treat groups.
+- Differential gene expression heat map file.
 
 #### log file
 
@@ -220,7 +211,7 @@ This file shows a heat map of the expression values of DEGs in the ctrl and trea
 
 ##### RankCompV3 package in julia
 
-[RankCompV3.jl](https://github.com/pathint/RankCompV3.jl)
+[RankCompV3.jl](https://github.com/yanjer/RankCompV3)
 
 ###### Use directly
 
@@ -239,8 +230,6 @@ reoa("/public/yanj/data/fn_expr.txt",
 
 ```julia
 #For details about how to download the RankCompV3 package, see 4.
-##[path] indicates the storage path.
-include("[path]/RankCompV3/src/RankCompV3.jl")
 using Main.RankCompV3
 #The package comes with test data. Use the default parameters. If you need to modify the parameters, add them directly.
 reoa(use_testdata="yes")
@@ -250,98 +239,101 @@ reoa("/public/yanj/data/fn_expr.txt",
 )
 ```
 
+##### Executable file for RanikCompV3
+
+[RankCompV3-executable-file](https://github.com/yanjer/RankCompV3-software)
+
+```shell
+#See the help
+RankCompV3/bin/RankCompV3 -h
+#The package comes with test data. Use the default parameters. If you need to modify the parameters, add them directly.
+RankCompV3/bin/RankCompV3 --use_testdata "yes"
+#Or local file. Use Default parameters. If you want to modify the parameters, add them directly.
+RankCompV3/bin/RankCompV3 --fn_expr "/public/yanj/data/fn_expr.txt" --fn_metadata "/public/yanj/data/fn_metadata.txt"
+```
+
 #### Input File
 
 - Expression profile file  
-  
-  [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
-  
+
+ 	[fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/test/fn_expr.txt)
+
 - metadata file
 
-  [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
+ 	[fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/test/fn_metadata.txt)
 
 - Housekeeping gene file (built-in, also supported for re-provisioning)
 
-  [HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/hk_gene_file/HK_genes_info.tsv)
+ 	[HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/RankCompV3/hk_gene_file/HK_genes_info.tsv)
 
 #### Resulting file
 
-- fn_expr_ctrl.tsv
+##### With the housekeeping gene, the following seven files are generated. Otherwise, it is not generated.
 
-This file is the expression profile of the ctrl group.
+- Three samples were randomly selected from each group to draw the expression distribution map of housekeeping gene in the samples.
 
-​		[fn_expr_ctrl.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_ctrl.tsv)
+ 	[fn_expr_hk_nonhk_gene_sample1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample1.pdf)
+ 	
+ 	[fn_expr_hk_nonhk_gene_sample2.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample2.pdf)
+ 	
+ 	[fn_expr_hk_nonhk_gene_sample4.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample4.pdf)
+ 	
+ 	[fn_expr_hk_nonhk_gene_sample5.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample5.pdf)
+ 	
+ 	[fn_expr_hk_nonhk_gene_sample6.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample6.pdf)
+ 	
+ 	[fn_expr_hk_nonhk_gene_sample8.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_sample8.pdf)
 
-- fn_expr_treat.tsv
+- Gene expression profile files of labeled housekeeping genes, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
-This file is the expression profile of the treat group.
+ 	[fn_expr_hk_nonhk_gene.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene.tsv)
 
-​		[fn_expr_treat.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_treat.tsv)
+##### Each iteration produces six files. (Only the results of the 0th iteration are shown below)
 
-- fn_expr_result.tsv
+- The differential gene result file obtained in this iteration. Among them, there are 5 columns, each column is gene name, delta, sd_delta, p, FDR.
 
-This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1.
+ 	[fn_expr_iteration_0_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_iteration_0_result.tsv)
 
-[fn_expr_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv)
+- The distribution maps of delta, sd_delta, Pval and Padj of the whole genes.
 
-- fn_expr_expr_dist.pdf
+ 	delta: 
+ 	
+ 	[fn_expr_0_delta_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_delta_graph.pdf)
+ 	
+ 	sd_delta: 
+ 	
+ 	[fn_expr_0_sd_delta_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_sd_delta_graph.pdf)
+ 	
+ 	*p*-value: 
+ 	
+ 	[fn_expr_0_Pval_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Pval_graph.pdf)
+ 	
+ 	FDR: 
+ 	
+ 	[fn_expr_0_Padj_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_0_Padj_graph.pdf)
 
-This file displays a graph of Distribution of Expression Values.
+- The gene expression profile file of the marker housekeeping gene in this iteration, with rows representing genes and columns representing samples. The first column is the name of the gene, and the second column is whether it is a housekeeping gene.
 
-[fn_expr_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_dist.pdf)
+ 	[fn_expr_hk_nonhk_gene_0.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_hk_nonhk_gene_0.tsv)
 
-- fn_expr_expr_heat.pdf
+##### Final output file after differential gene stabilization.
 
-This file shows heat maps of expression values for the ctrl and treat groups.
+- The final calculation results (gene name, delta, sd_delta, p, FDR) without threshold screening.
 
-[fn_expr_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_heat.pdf)
+ 	[fn_expr_deg_exp.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp.tsv)
 
-- fn_expr_contigency_table.pdf
+- Differential gene expression profile.
 
-This file shows the distribution of parameters in 3 x 3 contingency tables.
+ 	[fn_expr_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv)
 
-[fn_expr_contigency_table.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_contigency_table.pdf)
+- Differential gene expression heat map file.
 
-- fn_expr_delta_value.pdf
-
-This file shows the delta distribution.
-
-[fn_expr_delta_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_delta_value.pdf)
-
-- fn_expr_se.pdf
-
-This file shows the distribution of Standard Error (SE).
-
-[fn_expr_se.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_se.pdf)
-
-- fn_expr_z1.pdf
-
-This file shows the z1 distribution.
-
-[fn_expr_z1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_z1.pdf)
-
-- fn_expr_p_value.pdf
-
-This file shows the distribution of p and fdr values.
-
-[fn_expr_p_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_p_value.pdf)
-
-- fn_expr_degs_expr_dist.pdf
-
-This file shows the distribution of expression values for DEGs.
-
-[fn_expr_degs_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_dist.pdf)
-
-- fn_expr_degs_expr_heat.pdf
-
-This file shows a heat map of the expression values of DEGs in the ctrl and treat groups.
-
-fn_expr_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_heat.pdf)
+ 	[fn_expr_deg_exp_graph.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_deg_exp_graph.pdf)
 
 #### log file
 
-- [RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
+[RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3-test-data-output.log)
 
 ### Suggestion and Issue Reporting
 
-Any suggestion or issue reporting is welcome! You can contact **wang.xianlong@139.com** and **yanjer123@qq.com**. 
+Any suggestion or issue reporting is welcome! You can contact yanjer123@qq.com. 
