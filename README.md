@@ -253,15 +253,16 @@ reoa("/public/yanj/data/fn_expr.txt",
 #### Input File
 
 - Expression profile file  
-  - [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
-
+  
+  [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
+  
 - metadata file
 
-  - [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
+  [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
 
 - Housekeeping gene file (built-in, also supported for re-provisioning)
 
-  - [HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/hk_gene_file/HK_genes_info.tsv)
+  [HK_genes_info.tsv](https://github.com/yanjer/RankCompV3.jl/blob/master/hk_gene_file/HK_genes_info.tsv)
 
 #### Resulting file
 
@@ -269,13 +270,13 @@ reoa("/public/yanj/data/fn_expr.txt",
 
 This file is the expression profile of the ctrl group.
 
-[fn_expr_ctrl.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_ctrl.tsv)
+​		[fn_expr_ctrl.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_ctrl.tsv)
 
 - fn_expr_treat.tsv
 
 This file is the expression profile of the treat group.
 
-[fn_expr_treat.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_treat.tsv)
+​		[fn_expr_treat.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_treat.tsv)
 
 - fn_expr_result.tsv
 
@@ -335,7 +336,7 @@ This file shows the distribution of expression values for DEGs.
 
 This file shows a heat map of the expression values of DEGs in the ctrl and treat groups.
 
-[fn_expr_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_heat.pdf)
+fn_expr_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_heat.pdf)
 
 #### log file
 
