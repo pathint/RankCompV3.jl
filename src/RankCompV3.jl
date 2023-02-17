@@ -81,8 +81,9 @@ end
     sum_reo(c_size, t_size, c_sign, t_sign, c_count, t_count)
 
 Calculate the contribution of a REO of gene pair (a, b) to the 3x3 contigency table of gene a (not for gene b).
-```jldoctest
+
 Return, for gene a 
+```jldoctest
             Treatment
 	       a < b   a ~ b  a > b
 C	 a < b   n11    n12    n13
@@ -186,15 +187,20 @@ Test case (Table 1 in p. 452)
 Input
 ```jldoctest
 mat = [43 8 3 0; 2 2 5 3; 1 0 7 2; 0 0 1 5]
+```
 Expected N matrix
+```jldoctest
 3×3 Matrix{Int64}:
  14   4  0
   4  12  3
   0   3  6
-Expected R vector
-[11 11 5]'
-Expected Δ1 = 1.45, Δ2 = 1.50, std. error = 0.53
 ```
+Expected R vector
+```jldoctest
+[11 11 5]'
+```
+Expected Δ1 = 1.45, Δ2 = 1.50, std. error = 0.53
+
 """
 function McCullagh_test(mat::Matrix{Int})
 	r, c = size(mat)
