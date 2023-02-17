@@ -30,9 +30,12 @@ include("$(joinpath(@__DIR__, "..", "code","plot.jl"))")
 Description on REOA and its usage
 
 This is a version of `Optimisers.setup`, and is the first step before using [`train!`](@ref Flux.train!).
+
 It differs from `Optimisers.setup` in that it:
+
 * has one extra check for mutability (since Flux expects to mutate the model in-place,
   while Optimisers.jl is designed to return an updated model)
+
 * has methods which accept Flux's old optimisers, and convert them.
   (The old `Flux.Optimise.Adam` and new `Optimisers.Adam` are distinct types.)
 
@@ -78,6 +81,7 @@ end
     sum_reo(c_size, t_size, c_sign, t_sign, c_count, t_count)
 
 Calculate the contribution of a REO of gene pair (a, b) to the 3x3 contigency table of gene a (not for gene b).
+```jldoctest
 Return, for gene a 
             Treatment
 	       a < b   a ~ b  a > b
@@ -85,7 +89,9 @@ C	 a < b   n11    n12    n13
 t	 a ~ b   n21    n22    n23
 r	 a > b   n31    n32    n33
 l
+```
 Only one cell is 1 for which both row and column conditions are met;
+
 other cells are 0
 """
 function sum_reo(
@@ -172,9 +178,13 @@ end
 Peform the McCullagh's test on a square contigency table `mat`.
 
 McCullagh's test for a kxk contigency table;
+
 see Biometrika, 1977, 64(3), 449-453.
+
 Test case (Table 1 in p. 452) 
+
 Input
+```jldoctest
 mat = [43 8 3 0; 2 2 5 3; 1 0 7 2; 0 0 1 5]
 Expected N matrix
 3×3 Matrix{Int64}:
@@ -184,6 +194,7 @@ Expected N matrix
 Expected R vector
 [11 11 5]'
 Expected Δ1 = 1.45, Δ2 = 1.50, std. error = 0.53
+```
 """
 function McCullagh_test(mat::Matrix{Int})
 	r, c = size(mat)
@@ -225,6 +236,7 @@ end
 	McNemar_Bowker_test(mat::Matrix{Int}; continuity_correction = true)
 
 Peform McNemar-Bowker's symmetry test for a square kxk contigency table;
+
 calculate P value with Chi-squared distribution
 """
 function McNemar_Bowker_test(mat::Matrix{Int};
@@ -251,6 +263,7 @@ end
     McNemar_test(n01::Int, n10::Int; continuity_correction = true)
 
 Peform McNemar's test for a 2x2 contigency table;
+
 calculate P value with Chi-squared distribution
 """
 function McNemar_test(n01::Int, n10::Int;
@@ -273,6 +286,7 @@ end
     McNemar_exact_test(n01::Int, n10::Int)
 
 Peform an exact McNemar's test for a 2x2 contigency table; 
+
 calculate P value with Binomial distribution
 """
 function McNemar_exact_test(n01::Int, n10::Int)
@@ -286,9 +300,12 @@ end
 
 """
 Perform differential expression analysis iteratively.
+
 Calculate P values for each gene, then add the non-DEGs to the reference list
 1) Calculate the pvals for each gene;
+
 2) Update the ref_gene list by removing the DEGs from the ref_gene list and place non-DEGs as ref_gene;
+
 3) If the number of ref_gene remains the same as the previous list, the iteration stops and returns. 
 """
 function identify_degs(df_ctrl,
@@ -338,23 +355,7 @@ end
 
 """
     reoa(fn_expr::AbstractString = "fn_expr.txt",
-           fn_meta::AbstractString = "fn_meta.txt";
-    expr_threshold::Number = 0,
-          min_profiles::Int = 0, # Include features (genes) detected in at least this many cells
-      min_features::Int = 0, # Include profiles (cells) where at least this many features are detected
-          pval_reo::AbstractFloat = 0.01,
-          pval_deg::AbstractFloat = 0.05,
-          padj_deg::AbstractFloat = 0.05,
-        use_pseudobulk::Int = 0, # 0 for not using pseudobulk mode, 1 for automatic, 2~5 not used, 6~100 for number of pseudobulk profiles in each group
-      use_hk_genes::AbstractString = "yes",
-           hk_file::AbstractString = "$(joinpath(@__DIR__, "..", "hk_gene_file", "HK_genes_info.tsv"))",
-    gene_name_type::AbstractString = "ENSEMBL", # Available choices: ENSEMBL, Symbol, ENTREZID ...
-      ref_gene_max::Int = 3000,    # If the number of available features is higher than this, take a random sample of this size
-      ref_gene_min::Int = 100,     # If the number is lower than this, ignore the house-keeping genes
-                n_iter::Int = 128,     # Max iterations
-                n_conv::Int = 5,       # Convergence condition: max. difference in the number of DEGs between two consective iterations
-          work_dir::AbstractString = "./",
-      use_testdata::AbstractString = "no")
+           fn_meta::AbstractString = "fn_meta.txt")
 
 RankCompV3 is a differential expression analysis algorithm based on relative expression ordering (REO) of gene pairs. It can be applied to bulk or single-cell RNA-sequencing (scRNA-seq) data, microarray gene expression profiles and proteomics profiles, etc. When applied in scRNA-seq data, it can run in single-cell mode or pseudo-bulk mode. The pseudo-bulk mode is expected to improve the accuracy while decreasing runntime and memory cost. 
 
@@ -399,14 +400,14 @@ You need to prepare two input files before the analysis: metadata file and expre
 
  Column names for a metadata should be `Name` and `Group`. 
 
- See an example metadata file. [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
+ See an example metadata file, [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
 
 
 - **expression matrix file (required).**
 
  The first column is the gene name and the column header should be `Name` and the rest columns are profiles for each cell or each sample. Each column header should be the sample name which appears in the metadata file.
 
- See an example expression matrix file.[fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
+ See an example expression matrix file, [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
 
 Once the files are ready, you can carry out the DEG analysis with the default settings as follows. 
 
