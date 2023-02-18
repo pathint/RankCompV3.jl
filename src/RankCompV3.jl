@@ -433,7 +433,7 @@ julia> reoa("/public/yanj/data/fn_expr.txt",
     	min_profiles = 0,
     	min_features = 0,
     	pval_reo = 0.01,
-     	pval_deg = 1.00,
+     	pval_deg = 0.05,
      	padj_deg = 0.05,
     	use_pseudobulk = 0,
     	use_hk_genes = "yes"
@@ -443,8 +443,6 @@ julia> reoa("/public/yanj/data/fn_expr.txt",
     	ref_gene_min = 100
     	n_iter = 128,
     	n_conv = 5,
-    	cell_drop_rate = 0,
-    	gene_drop_rate = 0,
     	work_dir = "./",
     	use_testdata = "no")
 ```
