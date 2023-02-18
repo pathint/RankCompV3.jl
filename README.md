@@ -130,7 +130,7 @@ Below lists the optional keyword parameters and their default values.
 | hk_file        | AbstractString  | "HK_genes_info.tsv" | House-keeping genes  file path.                              |
 | gene_name_type | AbstractString  | "ENSEMBL"           | Available choices: Name, REFSEQ, SYMBOL, ENTREZID, ENSEMBL, UNIGENE and GENENAME. |
 | ref_gene_max   | Int             | 3000                | If the number of available features is higher than this, take a random sample of this size. |
-| refinement     | Int             | 100                 | If the number is lower than this, ignore the house-keeping genes. |
+| ref_gene_min   | Int             | 100                 | If the number is lower than this, ignore the house-keeping genes. |
 | n_iter         | Int             | 128                 | Max iterations.                                              |
 | n_conv         | Int             | 5                   | Convergence condition: max. difference in the number of DEGs between two consective iterations. |
 | work_dir       | AbstractString  | "./"                | Working Directory.                                           |
