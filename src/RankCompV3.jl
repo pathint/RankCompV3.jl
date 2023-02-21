@@ -161,7 +161,11 @@ function compare_reos(ctrl::AbstractMatrix,
 		end
 		pval, cont, stat = compute_pval(Int32(c_ctrl), Int32(c_treat), n_ctrl, n_treat, reo_mat) 
 		result[i, :] = [pval 1 cont... stat...]
+		if i%1000 == 0
+			print(".")
+		end
 	end
+	println(".")
 	Δ = sort(result[:,12])
 	# Filter out 10% most deviated  Δs before estimating the standard deviation
 	se= std(Δ[round(Int, r_ctrl*0.05) : round(Int, r_ctrl*0.95) ])
@@ -333,6 +337,7 @@ function identify_degs(df_ctrl,
 				  Int32(t_treat),
 				  ref_gene_vec
 				  )
+	@info "INFO: Iteration $i_iter is complete."
 	# non-DEGs
 	padj = result[:, 2]
 	inds = padj .> padj_deg 
@@ -525,6 +530,9 @@ function reoa(
 	df_treat   = expr[:, names_treat] 
 	r_ctrl, c_ctrl = size(df_ctrl )
 	r_treat,c_treat= size(df_treat)
+	if (r_ctrl > 500) || (r_treat > 500)
+		use_pseudobulk = 100
+	end
 	@info "INFO: size of the loaded expression matrix for the two groups, $r_ctrl x $c_ctrl vs $c_treat"
 
 	# Generate pseudo-bulk profiles
