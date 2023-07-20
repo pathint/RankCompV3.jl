@@ -1,0 +1,11 @@
+sample_name	group
+Sample1	group1
+Sample2	group1
+Sample3	group1
+Sample4	group1
+Sample5	group1
+Sample76	group2
+Sample77	group2
+Sample78	group2
+Sample79	group2
+Sample80	group2

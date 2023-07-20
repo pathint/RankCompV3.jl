@@ -3,56 +3,76 @@ module RankCompV3
 using Pkg
 using Distributed
 using SharedArrays
-using Base.Threads
+#using Base.Threads
 using MultipleTesting
 using DataFrames
+using CategoricalArrays
 using DelimitedFiles
 using CSV
 using Statistics
-using RCall
+using StatsBase
 using HypothesisTests
 using Distributions
 using Random
 using LinearAlgebra
-using Parsers
+using FileIO
 
 
-export reoa
+export 
+	reoa, 
+	McCullagh_test, 
+    McNemar_exact_test, McNemar_test, McNemar_Bowker_test, 
+	plot_result, plot_heatmap
 
-# Determine whether the required R package exists
-function check_R_packages()
-    R"""
-    if(require("ggplot2")){
-      print("ggplot2 package loaded successfully.")
-    } else {
-      print("No ggplot2 package exists, trying to install.")
-      install.packages("ggplot2")
-      if(require("ggplot2")){
-        print("ggplot2 installed successfully and loaded package.")
-      } else {
-        stop("Installation failed.")
-      }
-    }
-    if(require("pheatmap")){
-      print("pheatmap package loaded successfully.")
-    } else {
-      print("No heatmappackage exists, trying to install.")
-      install.packages("pheatmap")
-      if(require("pheatmap")){
-        print("pheatmap installed successfully and loaded package.")
-      } else {
-        stop("Installation failed.")
-      }
-    }
-    """
-    return 
+
+include("$(joinpath(@__DIR__, "..", "code","plot.jl"))")
+
+"""
+Description on REOA and its usage
+
+This is a version of `Optimisers.setup`, and is the first step before using [`train!`](@ref Flux.train!).
+
+It differs from `Optimisers.setup` in that it:
+
+* has one extra check for mutability (since Flux expects to mutate the model in-place,
+  while Optimisers.jl is designed to return an updated model)
+
+* has methods which accept Flux's old optimisers, and convert them.
+  (The old `Flux.Optimise.Adam` and new `Optimisers.Adam` are distinct types.)
+
+# Example
+```jldoctest
+
+julia> model.bias  # was zero, mutated by Flux.train!
+1-element Vector{Float32}:
+ 10.190001
+
+julia> opt  # mutated by Flux.train!
+(weight = Leaf(Momentum{Float64}(0.1, 0.9), Float32[-2.018 3.027]), bias = Leaf(Momentum{Float64}(0.1, 0.9), Float32[-10.09]), σ = ())
+```
+"""
+
+
+# pseudobulk
+function pseudobulk_group(group_expr::DataFrame,
+							n_pseudo::Int64,
+							g_name::String7)
+	r_group, c_group = size(group_expr )
+	cp_group  = ceil(Int,  c_group/n_pseudo)
+	cp_group > 1 || @info "WARN: too few profiles to generate $n_pseudo pseudo-bulk profiles for the 'group' group"
+	it_group  = collect(Iterators.partition(sample(1:c_group, c_group, replace = false), cp_group)) # Random-shuffle, then partition
+	group_expr  = reduce(hcat, [sum.(eachrow( group_expr[:, i])) for i in it_group ]) # Matrix r_group x n_pseudo
+	group_expr  = DataFrame(group_expr,  :auto)
+	rename!(group_expr,string.(g_name,"_",names(group_expr)))
+	return group_expr
 end
+
 
 
 #   If two genes have the same expression value,
 #   a random order is returned.
 function is_greater(x::Number, y::Number)
-	if abs(x - y) < 0.5
+	if abs(x - y) < 0.1
 		return rand(Bool)
 	else
 		return x > y
@@ -67,14 +87,31 @@ function get_major_reo_lower_count(sample_size::Int,
 	if pval_min < pval_threshold
 		return -findfirst(x-> pvalue(Binomial(sample_size), x) > pval_threshold, 
 					0:floor(Int, sample_size/2)) + 2 + sample_size
-	#floor向下取整
     else
-		println("WARN: even if all samples have the identical REOs, it still cannot reach the required significance, $pval_threshold.")
-		println("      The max. significance is $pval_min.")
+		@info "WARN: even if all samples have the identical REOs, it still cannot reach the required significance, $pval_threshold."
+		@info "      The max significance level is $pval_min."
 		return sample_size
 	end
 end
 
+"""
+    sum_reo(c_size, t_size, c_sign, t_sign, c_count, t_count)
+
+Calculate the contribution of a REO of gene pair (a, b) to the 3x3 contigency table of gene a (not for gene b).
+
+Return, for gene a 
+```jldoctest
+            Treatment
+	       a < b   a ~ b  a > b
+C	 a < b   n11    n12    n13
+t	 a ~ b   n21    n22    n23
+r	 a > b   n31    n32    n33
+l
+```
+Only one cell is 1 for which both row and column conditions are met;
+
+other cells are 0
+"""
 function sum_reo(
 			      c_size::Int32,
 			      t_size::Int32,
@@ -83,59 +120,11 @@ function sum_reo(
 			     c_count::Int32,
 			     t_count::Int32
 			 )
-	"""
-	The triple table
-	Return 
-	1 = (0, 0，1), a < b in ctrl and a > b in treat
-	2 = (0, 1，0), a ~ b in ctrl and a ~ b in treat
-    3 = (1, 0，0), a > b in ctrl and a < b in treat
-	and so on
-	"""
-    if c_count >= c_sign
-        #A>B,c
-		if (t_size - t_count) >= t_sign
-            # A>B,c;A<B,t
-			return ([0, 0, 0], [0, 0, 0], [1, 0, 0])
-        else
-            if t_count >= t_sign
-                #A>B,c;A>B,t
-                return ([0, 0, 0], [0, 0, 0], [0, 0, 1])
-            else
-                #A>B,c;A~B,t
-                return ([0, 0, 0], [0, 0, 0], [0, 1, 0])
-            end
-		end
-	else
-        if (c_size - c_count) >= c_sign
-            #A<B,c
-            if t_count >= t_sign
-                #A<B,c;A>B,t
-                return ([0, 0, 1], [0, 0, 0], [0, 0, 0])
-            else
-                if (t_size - t_count) >= t_sign
-                    #A<B,c;A<B,t
-                    return ([1, 0, 0], [0, 0, 0], [0, 0, 0])
-                else
-                    #A<B,c;A~B,t
-                    return ([0, 1, 0], [0, 0, 0], [0, 0, 0])
-                end
-            end
-        else
-            if t_count >= t_sign
-                #A~B,c;A>B,t
-                return ([0, 0, 0], [0, 0, 1], [0, 0, 0])
-            else
-                if (t_size - t_count) < t_sign
-                    #A~B,c;A<B,t
-                    return ([0, 0, 0], [1, 0, 0], [0, 0, 0])
-                else
-                    #A~B,c;A~B,t
-                    return ([0, 0, 0], [0, 1, 0], [0, 0, 0])
-                end
-            end
-        end
-	end
+	c_res = c_count >= c_sign ? 3 : ((c_size - c_count) >= c_sign ? 1 : 2)
+	t_res = t_count >= t_sign ? 3 : ((t_size - t_count) >= t_sign ? 1 : 2)
+	return c_res, t_res
 end
+
 
 function compute_pval( c_ctrl::Int32,
     c_treat::Int32,
@@ -144,467 +133,560 @@ function compute_pval( c_ctrl::Int32,
       reo_t::AbstractMatrix{Int32}
    )
     n_ref, = size(reo_t)
-    obs_all = reduce(.+, map(x -> sum_reo(c_ctrl, c_treat, n_ctrl, n_treat, x...), eachrow(reo_t)))
-    data_3x3 = [obs_all[1]';obs_all[2]';obs_all[3]']
-    delta = McCULLACH_test(data_3x3)
-    f = open( "delta_nd_z.tsv", "a" )
-    m = vcat([delta[1]],[delta[2]])
-    writedlm( f,[m] )
-	close(f)
-    delta = delta[1]
-    return delta
+	data_3x3 = [0 0 0;0 0 0;0 0 0]
+	for i = 1:n_ref
+		data_3x3[sum_reo(c_ctrl, c_treat, n_ctrl, n_treat, reo_t[i,:]...)...] += 1
+	end
+    pval, stat... = McCullagh_test(data_3x3)
+    return pval, data_3x3, stat
 end
 
+"""
+    compare_reos(ctrl, treat, n_ctrl, n_treat, ref_gene_vec)
+
+Construct the contigency table for each gene and then test the association.
+
+"""
 function compare_reos(ctrl::AbstractMatrix,
 		     treat::AbstractMatrix,
 		    n_ctrl::Int32,
 		   n_treat::Int32,
-		  ref_gene::Vector{Bool},            # 1-D Bool Array, 0 (false, other gene), 1 (true, ref gene)
-      ref_gene_new::BitVector
+	  ref_gene_vec::BitVector            # 1-D Bool Array, 0 (false, other gene), 1 (true, ref gene)
     )
-	"""
-	Compute p-value for each gene.
-	"""
-	 r_ctrl,  c_ctrl = size(ctrl)
+	r_ctrl,  c_ctrl  = size(ctrl)
 	r_treat, c_treat = size(treat)
-	r_ctrl == r_treat || throw(DimensionMismatch("the number of rows of 'ctrl' not equal to the number of rows of 'treat'."))
-    r_ctrl == length(ref_gene)|| throw(DimensionMismatch("the number of rows of 'ctrl' not equal to the length of 'ref_gene'."))
-    n_ref = sum(ref_gene)
-    n_rep = c_ctrl + c_treat
-	println("INFO: Number of threads, $(Threads.nthreads())")
-	i_deg = (1:r_ctrl)[.!ref_gene]
-	i_ref = (1:r_ctrl)[  (ref_gene_new .| ref_gene)]
-    data = ["delta" "nz_d"]
-    writedlm("delta_nd_z.tsv", data, '\t')
-    pval_t1 = pmap(i -> compute_pval(Int32(c_ctrl), 
-                       Int32(c_treat), 
-                       n_ctrl, n_treat, 
-                       reduce(vcat, [[Int32(sum(broadcast(is_greater,  ctrl[i,:],
-                                        ctrl[j,:])))	Int32(sum(broadcast(is_greater, treat[i,:],
-                                        treat[j,:])))] for j in i_ref[(i_ref .!= i)]])),
-                i_deg)
-    data = CSV.read("delta_nd_z.tsv", DataFrame)
-    pval_t = data[:,1]
-    sd_delta = data[:,2]
-    pval_t_retain = (pval_t .!= 111)
-    pval_t_del = pval_t[pval_t_retain]
-    sd_delta = sd_delta[pval_t_retain]
-    dist = Normal(0,1)
-    pval_t_var = pvalue.(dist, sd_delta, tail = :right)
-    padj = adjust(pval_t_var, BenjaminiHochberg())
-    pval_t_del = convert(Vector{Float64}, pval_t_del)
-	return pval_t_del,sd_delta,pval_t_var,padj,pval_t_retain
+    n_ref  =  length(ref_gene_vec)
+	r_ctrl == r_treat|| throw(DimensionMismatch("'Ctrl' and 'Treat' matrices do not have the equal number of rows."))
+    r_ctrl == n_ref  || throw(DimensionMismatch("The number of rows of expr data != the length of ref gene list."))
+	i_ref  = (1:r_ctrl)[ref_gene_vec]
+	n_val  = 10+5  #5 for McCullagph_test, 3 for McNemar_exact_test, 2 for McNemar_Bowker_test and McNemar_test
+	result = zeros(Float64, r_ctrl, n_val)
+	@info "INFO: Number of execution threads: $(Threads.nthreads())"
+	Threads.@threads for i in 1:r_ctrl
+		#TODO: To reduce the time cost, consider subsample the ref gene list here. 
+		max_ref = 3000
+		local ref_tmp = i_ref[ i_ref .!= i ]
+		if length(ref_tmp) > max_ref
+			"If there are more than `max_ref` reference genes, sample `max_ref` of them randomly"
+			ref_temp = sample(ref_tmp, max_ref, replace = false) 
+		end
+		local reo_mat = zeros(Int32, length(ref_tmp), 2)
+		for jd in 1:length(ref_tmp)
+			j = ref_tmp[jd]
+			reo_mat[jd, 1] = Int32(sum(broadcast(is_greater,  ctrl[i,:],  ctrl[j,:]))) 
+			reo_mat[jd, 2] = Int32(sum(broadcast(is_greater, treat[i,:], treat[j,:]))) 
+		end
+		pval, cont, stat = compute_pval(Int32(c_ctrl), Int32(c_treat), n_ctrl, n_treat, reo_mat) 
+		result[i, :] = [pval 1 cont... stat...]
+		if i%1000 == 0
+			print(".")
+		end
+	end
+	println(".")
+	Δ = sort(result[:,12])
+	# Filter out 10% most deviated  Δs before estimating the standard deviation
+	se= std(Δ[round(Int, r_ctrl*0.05) : round(Int, r_ctrl*0.95) ])
+	pval = pvalue.(Normal(0, se), result[:,12], tail=:both)
+	padj = adjust(pval, BenjaminiHochberg())
+	result[:, 1] = pval
+	result[:, 2] = padj
+	return result
 end
 
 
-function McCULLACH_test(data::Matrix)
-	l_i = size(data)[1]
-    l_j = size(data)[2]
-    #N,n,r
-    N = zeros(l_i-1,l_j-1)
-    D = zeros(l_i-1,l_j-1)
-    n = zeros(l_i-1,1)
-    r = zeros(l_i-1,1)
-    m = 0
-    for i in 1:l_i-1
-        N[i,i] = n[i,1] = D[i,i] = sum(data[1:i,i+1:l_i]) + sum(data[i+1:l_i,1:i])
-        r[i,1] = sum(data[1:i,i+1:l_i])
-        for j in i+1:l_j-1
-            if i != j
-                N[i,j] = N[j,i] = N[i,i] - data[j,i] - data[i,j] - m
-                m = data[j,i] + data[i,j]
-            end
-        end
-    end
-    #If the determinant is a singular matrix, mark 111.0.
-    if det(N) == 0
-        return 111.0,111.0
+"""
+    McCullagh_test(mat::Matrix{Int})
+
+Peform the McCullagh's test on a square contigency table `mat`.
+
+McCullagh's test for a kxk contigency table;
+
+see Biometrika, 1977, 64(3), 449-453.
+
+Test case (Table 1 in p. 452) 
+
+Input
+```jldoctest
+mat = [43 8 3 0; 2 2 5 3; 1 0 7 2; 0 0 1 5]
+```
+Expected N matrix
+```jldoctest
+3×3 Matrix{Int64}:
+ 14   4  0
+  4  12  3
+  0   3  6
+```
+Expected R vector
+```jldoctest
+[11 11 5]'
+```
+Expected Δ1 = 1.45, Δ2 = 1.50, std. error = 0.53
+
+"""
+function McCullagh_test(mat::Matrix{Int})
+	r, c = size(mat)
+    r == c || throw(DimensionMismatch("input matrix 'mat' should be a square matrix."))
+    #Symmetric matrix N, the first equation in p.450
+    N = zeros(Int64, r -1, c -1)
+	for i = 1:r-1
+		for j = i:r-1
+			N[i,j] = N[j, i] = sum(mat[1:i, j+1:end]) + sum(mat[j+1:end,1:i])
+		end
+	end
+	n = diag(N)   # Extract the diagonal elements as a vector
+	D = diagm(n)  # Construct a diagnonal matrix from a vector
+	R = zeros(Int64, r-1)
+	for i = 1:r-1
+		R[i] = sum(mat[1:i,i+1:end])
+	end
+    #If N is a singular matrix, return 1.0 directly
+	if abs(det(N)) <= eps()
+        return 1.0, 0, 0, 0, 0
     else
-        N_inv = inv(N)
-        #w1,w2,delta1,delta2
-        w1 = (D*N_inv*n)/(n'*N_inv*n)
-        w2 = N_inv*n
-        delta1 = w1'*log.((r .+ 1/2)./(n - r .+ 1/2))
-        delta2 = log((1/2 .+ w2' * r)/(1/2 .+ w2' * (n - r)))
-        var_delta1 = (4 * (1 .+ (1/4) * delta1^2)/(n'*N_inv*n))
-        var_delta2 = (4 * (1 .+ (1/4) * delta2^2)/(n'*N_inv*n))
-        sd = sqrt((var_delta1 + var_delta2) /2)
-        nd_z1 = delta1/sd
-        return delta1[1],nd_z1[1]
+        Ni = inv(N)
+		ω2 = Ni*n   
+		nu = 1.0/(n'*ω2)        # p.451
+		ω1 = (D*ω2) .*nu
+        Δ1 = ω1'*log.((R .+ 0.5)./(n - R .+ 0.5))
+        Δ2 = log((0.5 .+ ω2' * R)/(0.5 .+ ω2' * (n .- R)))
+        v1 = 4 * (1 + 0.25 * Δ1^2)*nu
+        v2 = 4 * (1 + 0.25 * Δ2^2)*nu
+        se = sqrt((v1 + v2) * 0.5)
+        z1 = Δ1/se
+		pval = pvalue(Normal(0, 1), z1, tail = :both)
+		#println(ω1, ω2, Δ1, Δ2, se, z1, pval)
+        return pval, Δ1, Δ2, se, z1
     end
 end
 
-function rand_sit(ref_gene_num::Int64,ref_sum_yuan::Int64)
-    rand_num = unique([rand(1:ref_sum_yuan) for r in 1:ref_gene_num*100])
-    if length(rand_num) >= ref_gene_num
-        return rand_num[1:ref_gene_num]
+"""
+	McNemar_Bowker_test(mat::Matrix{Int}; continuity_correction = true)
+
+Peform McNemar-Bowker's symmetry test for a square kxk contigency table;
+
+calculate P value with Chi-squared distribution
+"""
+function McNemar_Bowker_test(mat::Matrix{Int};
+                 continuity_correction = true)
+    r, c = size(mat)
+    r == c || throw(DimensionMismatch("input matrix 'mat' should be a square matrix."))
+    para = (r*(r-1))>>1
+    diff = mat .- mat'
+    if continuity_correction & r == 2 & any(diff .!= 0)
+        y = abs.(diff) .- 1
     else
-        return rand_sit(ref_gene_num)
+        y = diff
     end
-end
-
-function hk_non_hk_graph(data::DataFrame,sample_name::String,fn_stem::String)
-    @rput data
-    @rput sample_name
-    @rput fn_stem
-    R"""
-    library(ggplot2)
-    getmode <- function(v) {
-       uniqv <- unique(v)
-       uniqv[which.max(tabulate(match(v, uniqv)))]
-    }
-    sample_data=data[,which(colnames(data)==sample_name)]
-    max_num=getmode(sample_data)
-    hk_graph = ggplot(data, aes_string(x=sample_name, fill="gene_types"))+
-    geom_density(alpha=.3)+
-    theme_classic()+
-    scale_x_continuous(limits = c(max(max_num-20,0),min(max_num+20,max(sample_data))))
-    ggsave(hk_graph,filename = paste(fn_stem,"_hk_nonhk_gene_",sample_name,".pdf", sep = ""),width = 6,height = 5)
-    """
-end
-
-function delta_p_padj_graph(data::DataFrame,fn_stem::String)
-    @rput data
-    @rput fn_stem
-    R"""
-    library(ggplot2)
-    delta_graph=ggplot(data, aes(x=delta)) + 
-      geom_histogram(aes(y=..density..),
-                     binwidth=1,
-                     colour="black", fill="white") +
-      geom_density(alpha=.2, fill="#4b5cc466")+
-      geom_function(fun = dnorm, args = list(mean = mean(data$delta), sd = sqrt(var(data$delta))),colour = "red")+
-      theme_classic()
-    ggsave(delta_graph,filename = paste(fn_stem, "_delta_graph.pdf", sep = ""),width = 6,height = 5)
-    graph_p_padj=function(data,name){
-      num = data[,which(names(data)==name)]
-      bin_size = max(num)/100
-      ts = matrix(seq(min(num),max(num)+max(num)/100,bin_size),ncol = 1,byrow = TRUE)
-      ts = cbind(ts,ts)
-      colnames(ts)=c(name,"num")
-      nu=0
-      for (i in 1:length(ts[,1])) {
-        s=data[ which(num <= ts[i,1]), ]
-        if (i==1){
-          ts[i,2] = length(s[,1])
-          nu=nu+ts[i,2]
-          next
-        }
-        else{
-          ts[i,2] = length(s[,1]) - nu
-          nu=nu+ts[i,2]
-        }
-      }
-      ts = data.frame(ts)
-      ts[,2]=ts[,2]/sum(ts[,2])
-      name_graph = ggplot(ts,aes_string(x = name, y = "num"))+
-        geom_point()+
-        theme_classic()
-        ggsave(name_graph,filename = paste(fn_stem, "_",name,"_graph.pdf", sep = ""),width = 6,height = 5)
-    }
-    graph_p_padj(data,'Pval')
-    graph_p_padj(data,'Padj')
-    graph_p_padj(data,'sd_delta')
-    """
-end
-
-function deg_exp_graph(data::DataFrame,fn_stem::String,c_ctrl::Int64,c_treat::Int64)
-    @rput data
-    @rput fn_stem
-    @rput c_ctrl
-    @rput c_treat
-    R"""
-    rownames(data)=data[,1]
-    data=data[,-1]
-    data=log2(data)
-    data[data==Inf]<-0
-    data[data==-Inf]<-0
-    annotation_col <- data.frame(
-      sample_type = c(rep("group1", each = c_ctrl), rep("group2", each = c_treat))
-    )
-    rownames(annotation_col) <- colnames(data)
-    library("pheatmap")
-    pheatmap(
-      data,
-      #scale = "row",
-      color = colorRampPalette(colors = c("#58ACFA", "white", "red"))(10),
-      annotation_col = annotation_col,
-      cluster_col = F,
-      cluster_row = F,
-      border = T,
-      border_color = "black",
-      cellwidth=25,
-      cellheight=20,
-      annotation_colors = list(sample_type= c(group1 = "red3", group2 = "blue3")),
-      filename = fn_stem
-    )"""
-end
-
-
-###### Iteratively update housekepping gene
-function reoa_update_housekeeping_gene(df_ctrl,
-        df_treat,
-        names::Vector{String},
-        ref_gene::Vector{Bool},
-         c_ctrl::Int64,
-        c_treat::Int64,
-         t_ctrl::Int64,
-        t_treat::Int64,
-        pval_reo::AbstractFloat,
-        padj_deg::AbstractFloat,
-         fn_stem::AbstractString,
-    ref_gene_new::BitVector, #ref_gene
-   iteration_num::Int = 0
-	     )
-    @time  pvals = compare_reos(
-				  Matrix( df_ctrl[!,1:c_ctrl ]),
-				  Matrix(df_treat[!,1:c_treat]),
-				  Int32(t_ctrl),
-				  Int32(t_treat),
-				  ref_gene,
-                  ref_gene_new)
-    delta = pvals[1]
-    sd_delta = pvals[2]
-    padj = pvals[4]
-    pvals_nosingular_matrix_sit =  pvals[5]
-    pvals = pvals[3]
-    names1 = names[.!ref_gene]
-    names1 = names1[pvals_nosingular_matrix_sit]
-    pvals_num = (pvals .<= pval_reo)
-    padj_num = (padj .<= padj_deg)
-    pvals_padj_sit = (pvals_num .& padj_num)
-    iteration_1_result = DataFrame()
-    insertcols!(iteration_1_result, 1, :names => names1)
-    insertcols!(iteration_1_result, 2, :delta => delta)
-    insertcols!(iteration_1_result, 3, :sd_delta => sd_delta)
-    insertcols!(iteration_1_result, 4, :Pval => pvals)
-    insertcols!(iteration_1_result, 5, :Padj => padj)
-    iteration_1_fn_out = string(fn_stem, "_iteration_$(iteration_num )_result.tsv")
-    CSV.write(iteration_1_fn_out, iteration_1_result, delim = '\t')
-    isfile(iteration_1_fn_out) && println("WARN: file $iteration_1_fn_out exists and will be overwritten.")
-    print("INFO: N of $(sum(.!pvals_nosingular_matrix_sit)) genes in the $(iteration_num)th calculation is a singular matrix, and there are $(sum(pvals_padj_sit)) differential genes.")
-    println("Save the results (gene name, delta, sd_delta, p, FDR) as $(iteration_1_fn_out) file except for the genes of singular matrix.")
-    fn_stem_it = string(fn_stem, "_$(iteration_num)")
-    delta_p_padj_graph(iteration_1_result,fn_stem_it)
-    println("INFO: The distribution maps of sd_delta, Pval and Padj of the whole genes in the results of the $(iteration_num)th iteration were drawn. Save as ",string(fn_stem_it, "_sd_delta_graph.pdf、"),string(fn_stem_it, "_Pval_graph.pdf、"),string("和",fn_stem_it, "_Padj_graph.pdf"))
-    names1 = names1[pvals_padj_sit]
-    ref_gene_new_now = (map(x -> ∈(x, names1), names))
-    if sum(ref_gene_new_now) == sum(.!ref_gene_new)
-        result = DataFrame()
-        insertcols!(result, 1, :names => names1)
-        insertcols!(result, 2, :delta => delta[pvals_padj_sit])
-        insertcols!(result, 3, :sd_delta => sd_delta[pvals_padj_sit])
-        insertcols!(result, 4, :Pval => pvals[pvals_padj_sit])
-        insertcols!(result, 5, :Padj => padj[pvals_padj_sit])
-        fn_out = string(fn_stem, "_result.tsv")
-        isfile(fn_out) && println("WARN: file $fn_out exists and will be overwritten.")
-        CSV.write(fn_out, result, delim = '\t')
-        print("INFO: After $(iteration_num) iterations, the obtained list of differential genes (gene name, delta, sd_delta, p, FDR) is saved as $(fn_out) file, ")
-        r_ctrl,  c_ctrl  = size(df_ctrl)
-        r_treat, c_treat = size(df_treat)
-        deg_exp_ctrl = df_ctrl[((1:r_ctrl)[ref_gene_new_now]),:]
-        deg_exp_treat = df_treat[((1:r_treat)[ref_gene_new_now]),:]
-        fn_deg_exp = string(fn_stem, "_deg_exp.tsv")
-        deg_exp = DataFrame()
-        deg_exp[:,:names] = names1
-        deg_exp = [deg_exp deg_exp_ctrl deg_exp_treat]
-        CSV.write(fn_deg_exp, deg_exp, delim = "\t")
-        println("Save differential gene expression profile as $(fn_deg_exp).")
-        println("INFO: The final calculation results (gene name, delta, sd_delta, p, FDR) without threshold screening are $(iteration_1_fn_out) files.")
-        fn_stem_pheatmap = string(fn_stem, "_deg_exp_graph.pdf")
-        deg_exp_graph(deg_exp,fn_stem_pheatmap,c_ctrl,c_treat)
-        println("INFO: The expression heat map of DEGs was drawn and saved as ", fn_stem_pheatmap)
-        return result
+    x = mat .+ mat'
+    if any([x[i,j] == 0 for i in 1:r-1 for j in i+1:r])
+        return 1.0, 0
     else
-        ref_gene_new = (.!ref_gene_new_now)
-        hk_nonhk = copy(names)
-        hk_nonhk[ref_gene_new] .= "hk_gene"
-        hk_nonhk[.!ref_gene_new] .= "non_hk_gene"
-        exp_sit = DataFrame()
-        exp_sit[:,:gene_names] = names
-        exp_sit[:, :gene_types] = hk_nonhk
-        exp_sit = [exp_sit df_ctrl df_treat]
-        ref_sum_non = sum((.!ref_gene_new))
-        gene_fn_out = string(fn_stem,"_hk_nonhk_gene_",iteration_num,".tsv")
-        CSV.write(gene_fn_out, exp_sit, delim = "\t")
-        println("INFO: The $(ref_sum_non) non-differential genes obtained in the $(iteration_num)th iteration were added to the list of non-housekeeping genes, and the expression profiles (gene name, housekeeping gene, sample) were saved into $(gene_fn_out).")
-        iteration_num = iteration_num + 1
-        return reoa_update_housekeeping_gene(df_ctrl,
-        df_treat,
-           names,
-        ref_gene,
-          c_ctrl,
-         c_treat,
-          t_ctrl,
-         t_treat,
-        pval_reo,
-        padj_deg,
-         fn_stem,
-    ref_gene_new,  #ref_gene
-    iteration_num
-	     )
+        stat = sum(y[i,j]^2/x[i,j] for i in 1:r-1 for j in i+1:r)
+        return pvalue(Chisq(para), stat, tail = :right), stat
     end
 end
 
+"""
+    McNemar_test(n01::Int, n10::Int; continuity_correction = true)
 
-function reoa(fn_expr::AbstractString = "fn_expr.txt",
-        fn_metadata::AbstractString = "fn_metadata.txt";
+Peform McNemar's test for a 2x2 contigency table;
+
+calculate P value with Chi-squared distribution
+"""
+function McNemar_test(n01::Int, n10::Int;
+              continuity_correction = true)
+    dif = n01 - n10
+    sum = n01 + n10
+    if continuity_correction & dif != 0
+        dif = abs(dif) - 1
+    end
+    if sum == 0
+        pval = 1.0
+    else
+        stat = dif*dif/sum
+        pval = pvalue(Chisq(1), stat, tail = :right)
+    end
+    return pval, stat
+end
+
+"""
+    McNemar_exact_test(n01::Int, n10::Int)
+
+Peform an exact McNemar's test for a 2x2 contigency table; 
+
+calculate P value with Binomial distribution
+"""
+function McNemar_exact_test(n01::Int, n10::Int)
+    n = max(n01, n10)
+    N = n01 + n10
+    dist = Binomial(N, 0.5)
+    pval = pvalue(dist, n, tail = :both)
+    return pval, N, n
+end
+
+
+"""
+Perform differential expression analysis iteratively.
+
+Calculate P values for each gene, then add the non-DEGs to the reference list
+1) Calculate the pvals for each gene;
+
+2) Update the ref_gene list by removing the DEGs from the ref_gene list and place non-DEGs as ref_gene;
+
+3) If the number of ref_gene remains the same as the previous list, the iteration stops and returns. 
+"""
+
+# Group-specific DEGs
+function identify_degs(
+		    data::AbstractMatrix,
+           group::AbstractVector, # Group information for each column in data
+      gene_names::AbstractVector,
+      # threshold::AbstractMatrix,   # Threshold for each group, 2xg
+	    pval_reo::AbstractFloat,
+        pval_deg::AbstractFloat,  # P-value threshold for DEGs
+        padj_deg::AbstractFloat,  # FDR threshold for DEGs
+	    ref_gene::BitVector, 
+          n_iter::Int64,        # Threshold for iterations
+	  	  n_conv::Int64         # Threshold for convergence
+	)
+	r, c = size(data)
+	glen = length(group)
+	glev = unique(group)   # Unique group levels
+	gnum = length(glev)
+	c == glen|| throw(DimensionMismatch("'data' and 'group' do not have compatiable sizes"))
+	gnum > 1 || throw(DimensionMismatch("Only 1 level in 'group1, at least 2 levels!"))
+	gind = [group .== i for i in glev]
+	gsi1 = sum.(gind)
+	gsi2 = c .- gsi1
+	#TODO
+	# threshold = ceil.(Int32, hcat(gsi1*0.9, gsi2*0.7)')
+    threshold = get_major_reo_lower_count.(Matrix(hcat(gsi1,gsi2)') , pval_reo)
+	R = falses(r*r, 9, gnum) # BitMatrix, 0 (false) or 1 (true), for each group
+	@info "INFO: Number of execution threads: $(Threads.nthreads())"
+	@info "INFO: Start constructing REO table"
+	for i=1:r - 1
+		i%100 == 0 && print(".")
+		Threads.@threads for j=i+1:r
+			# REO     1     2    3
+			#  Ctrl: i<j  i~j  i>j
+			#  Treat i<j  i~j  i>j
+			local reo = broadcast(is_greater,  data[i,:],  data[j,:])
+			local nre = [sum(reo[gind[k]]) for k in 1:gnum]
+			local not = sum(nre) .- nre
+			for k=1:gnum
+				local ic = nre[k] >= threshold[1, k] ? 3 : ((gsi1[k] - nre[k]) >= threshold[1, k] ? 1 : 2)
+				local it = not[k] >= threshold[2, k] ? 3 : ((gsi2[k] - not[k]) >= threshold[2, k] ? 1 : 2)
+				#     i<j  i~j  i>j
+				# i<j n11  n12  n13
+				# i~j n21  n22  n23
+				# i>j n31  n32  n33
+				# R
+				#  1    2    3   4    5    6   7    8    9
+				# n11  n12  n13 n21  n22  n23 n31  n32  n33
+				R[(i-1)*r+j, 3*(ic - 1) + it , k] = 1 # for gene i 
+				R[(j-1)*r+i, 3*(3-ic) + (4-it), k] = 1# for gene j
+				if gnum == 2
+					break
+				end
+			end
+		end
+	end
+	@info "\nINFO: Start identifying DEGs"
+	res  = gene_names
+	# outerloop for each group
+	for k=1:gnum
+		i_iter = 0
+		result = zeros(Float64, r, 15) #10 +5 for McCullagph_test, +3 for McNemar_exact_test, +2 for McNemar_Bowker_test and McNemar_test
+		ref_gene_vec = ref_gene
+		while i_iter < n_iter
+			# Construct contigency table For each gene
+			Threads.@threads for i in 1:r
+				local cont = sum(R[(((i-1)*r+1):(i*r))[ref_gene_vec], :, k], dims = 1)
+				local pval, stat... = McCullagh_test(Matrix(reshape(cont, 3, 3)'))
+				result[i, :] = [pval 1 cont... stat...]
+				i%1000 == 0 && print(".")
+			end
+			print("\n")
+			Δ = sort(result[:,12])
+			# Filter out 10% most deviated  Δs before estimating the standard deviation
+			se= std(Δ[round(Int, r*0.05) : round(Int, r*0.95) ])
+			pval = pvalue.(Normal(0, se), result[:,12], tail=:both)
+			padj = adjust(pval, BenjaminiHochberg())
+			# padj = adjust(result[:,1], BenjaminiHochberg())
+			result[:, 1] = pval
+			result[:, 2] = padj
+			inds = padj .> padj_deg 
+			@info "INFO: iteration $i_iter,  # DEGs $(length(inds) - sum(inds)), # non-DEGs $(sum(inds))"
+			if (abs(sum(ref_gene_vec) - sum(inds)) < n_conv) || (sum(inds) == 0) || (sum(padj .<= padj_deg) == 0)
+				@info "INFO: Convergence threshold is reached"
+				break
+			end
+			i_iter += 1
+			ref_gene_vec = inds
+		end
+		gene_up_down = copy(gene_names)
+		gene_up_down[result[:,15] .> 0] .= "up"
+		gene_up_down[result[:,15] .< 0] .= "down"
+		gene_up_down[result[:,15] .== 0] .= "no change"
+		res = hcat(res, result, gene_up_down)
+		if gnum==2
+			@info "INFO: The results of differentially expressed genes in the iteration process of $(glev[1]) vs $(glev[2]) were output."
+			break
+		end
+		@info "INFO: The results of differentially expressed genes in the iteration process of $(glev[k]) vs other were output."
+	end
+	return res
+end
+
+"""
+    reoa(fn_expr::AbstractString = "fn_expr.txt",
+           fn_meta::AbstractString = "fn_meta.txt")
+
+RankCompV3 is a differential expression analysis algorithm based on relative expression ordering (REO) of gene pairs. It can be applied to bulk or single-cell RNA-sequencing (scRNA-seq) data, microarray gene expression profiles and proteomics profiles, etc. When applied in scRNA-seq data, it can run in single-cell mode or pseudo-bulk mode. The pseudo-bulk mode is expected to improve the accuracy while decreasing runntime and memory cost. 
+
+# Examples
+## Quick Start
+
+Run a test job with the input files distributed with the package.
+
+```jldoctest
+julia> using RankCompV3
+# Use the default values for the following other parameters. If you need to modify the parameters, add them directly.
+julia> result = reoa(use_testdata="yes")
+```
+
+The analysis results and a few plots will be generated and saved in the current work directory. They are also returned by the `reoa` function and can be captured by assign the returned values to a variable,  e.g., `result` in the above example.  
+
+The first return value is a DataFrame, where rows are genes and columns are statistical values for each gene. All the genes passing the basic preprocessing step are retained. 
+
+
+```jldoctest
+julia> result
+(19999×16 DataFrame
+   Row │ Name     pval         padj        n11      n21      n31      n12      n22      n32      n13      n23      n33      Δ1           Δ2          se         z1
+       │ String   Float64      Float64     Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64      Float64     Float64    Float64
+───────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+     1 │ DE1      0.23566      0.716036     1532.0     75.0      0.0   1220.0  11010.0    602.0     16.0   2933.0   1674.0   1.91208      1.81954    0.0393608    48.5783
+     2 │ DE2      0.280118     0.761567     2277.0    288.0      0.0    965.0  11514.0    372.0     20.0   2615.0   1011.0   1.74141      1.70287    0.0405313    42.9647
+     3 │ DE3      0.0578546    0.359121     1576.0     37.0      0.0   1376.0   8716.0    293.0    113.0   5211.0   1740.0   3.05828      3.02011    0.0437133    69.9623
+   ⋮   │    ⋮          ⋮           ⋮          ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮          ⋮           ⋮           ⋮           ⋮
+ 19998 │ EE19999  0.344847     0.823375     1475.0    307.0      0.0   1756.0  15356.0    128.0      0.0     38.0      2.0   1.52307      1.41599    0.0525798    28.9668
+ 19999 │ EE20000  0.694484     0.980397     1571.0    315.0      0.0    979.0  15555.0    362.0      1.0    225.0     54.0   0.63329      0.577392   0.0481845    13.143
+                                                                                                                                             19965 rows omitted, 19999×16
+```
+
+## Run your own DEG analysis
+
+You need to prepare two input files before the analysis: metadata file and expression matrix. Both of them should be saved in the `TSV` or 'CSV` format and they should be compatible with each other.   
+
+- **metadata file (required).**
+
+ The metadata file contains at least two columns. The first column is the sample names, and the second column is the grouping information. Only two groups are supported at present, therefore, do not include more than two groups. 
+
+ Column names for a metadata should be `Name` and `Group`. 
+
+ See an example metadata file, [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt)
+
+
+- **expression matrix file (required).**
+
+ The first column is the gene name and the column header should be `Name` and the rest columns are profiles for each cell or each sample. Each column header should be the sample name which appears in the metadata file.
+
+ See an example expression matrix file, [fn_expr.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_expr.txt)
+
+Once the files are ready, you can carry out the DEG analysis with the default settings as follows. 
+
+```jldoctest
+julia> using RankCompV3
+# Use the default values for the following other parameters. If you want to modify the parameters, add them directly.
+julia> reoa("/public/yanj/data/fn_expr.txt",
+		"/public/yanj/data/fn_metadata.txt")
+```
+
+Other parameters can be set by passing the value to the corresponding keyword. 
+
+```jldoctest
+julia> reoa("/public/yanj/data/fn_expr.txt",
+    	"/public/yanj/data/fn_metadata.txt",
+    	expr_threshold = 0,
+    	min_profiles = 0,
+    	min_features = 0,
+    	pval_reo = 0.01,
+     	pval_deg = 0.05,
+     	padj_deg = 0.05,
+    	use_pseudobulk = 0,
+    	use_hk_genes = "yes"
+    	hk_file = "HK_genes_info.tsv",
+    	gene_name_type = "ENSEMBL",
+    	ref_gene_max = 3000,
+    	ref_gene_min = 100
+    	n_iter = 128,
+    	n_conv = 5,
+    	work_dir = "./",
+    	use_testdata = "no")
+```
+
+"""
+function reoa(
+	 	   fn_expr::AbstractString = "fn_expr.txt",
+           fn_meta::AbstractString = "fn_meta.txt";
     expr_threshold::Number = 0,
+	  min_profiles::Int = 0, # Include features (genes) detected in at least this many cells
+      min_features::Int = 0, # Include profiles (cells) where at least this many features are detected
           pval_reo::AbstractFloat = 0.01,
-     pval_sign_reo::AbstractFloat = 1.00,
-     padj_sign_reo::AbstractFloat = 0.05,
+          pval_deg::AbstractFloat = 0.05,
+          padj_deg::AbstractFloat = 0.05,
+		  n_pseudo::Int = 0, # 0 for not using pseudobulk mode, Other values indicate the number of samples that are combined after each pseudobulk.
+      use_hk_genes::AbstractString = "yes",
            hk_file::AbstractString = "$(joinpath(@__DIR__, "..", "hk_gene_file", "HK_genes_info.tsv"))",
-           hk_name::AbstractString = "ENSEMBL",
-      ref_gene_num::Int = 3000,
-    use_housekeeping::AbstractString = "yes",
-           species::AbstractString = "human",
-    cell_drop_rate::Int = 0,
-    gene_drop_rate::Int = 0,
-    work_dir::AbstractString = "./",
-    use_testdata::AbstractString = "no"
+    gene_name_type::AbstractString = "ENSEMBL", # Available choices: ENSEMBL, Symbol, ENTREZID ...
+      ref_gene_max::Int = 3000,    # If the number of available features is higher than this, take a random sample of this size
+      ref_gene_min::Int = 100,     # If the number is lower than this, ignore the house-keeping genes
+	        n_iter::Int = 128,     # Max iterations 
+	        n_conv::Int = 5,       # Convergence condition: max. difference in the number of DEGs between two consective iterations
+          work_dir::AbstractString = "./",
+      use_testdata::AbstractString = "no"
     )
-    """
-    New implementation.
-    """
-    check_R_packages()
+
     cd(work_dir)
+	# if use test data, we will ignore the input for 'fn_expr' and 'fn_meta'.
     if use_testdata == "yes"
         fn_expr = "$(joinpath(@__DIR__, "..", "test", "fn_expr.txt"))"
-        fn_metadata="$(joinpath(@__DIR__, "..", "test", "fn_metadata.txt"))"
+        fn_meta = "$(joinpath(@__DIR__, "..", "test", "fn_meta.txt"))"
     end
+
     # Import datasets
-    isfile(fn_expr) || throw(ArgumentError(fn_expr, " does not exist or is not a regular file."))
-    filesize(fn_expr) > 0 || throw(ArgumentError("file for expression matrix has size 0."))
-    if species != "human"
-        println("INFO: The species information you selected for input data is: ",species)
-        if species == "mouse"
-            hk_file=replace(hk_file, "HK_genes_info.tsv" => "HK_genes_info_mouse.tsv")
-        else
-            println("ERROR: Currently, only House Keeping gene information for Human or mouse is provided. Please re-enter Human or mouse.")
-        end
-    else
-        println("INFO: The species information you selected for input data is: ",species)
+	isfile(fn_expr) && isfile(fn_meta)             || throw(ArgumentError("$fn_expr, or $fn_meta, does not exist or is not a regular file."))
+	filesize(fn_expr) > 0 && filesize(fn_meta) > 0 || throw(ArgumentError("$fn_expr, or $fn_meta, has size 0."))
+    fn_stem, = splitext(basename(fn_expr))   #filename stem
+	# Read in expression matrix
+    expr = occursin(".rds",fn_expr) ? DataFrame(load(fn_expr),:auto) : (occursin(".RData",fn_expr) ? DataFrame(get(load(fn_expr),fn_stem,1),:auto) : CSV.read(fn_expr, DataFrame))
+    meta = occursin(".rds",fn_meta) ? DataFrame(load(fn_meta),:auto) : (occursin(".RData",fn_meta) ? DataFrame(get(load(fn_meta),splitext(basename(fn_meta))[1],1),:auto) : CSV.read(fn_meta, DataFrame))
+	mr,mc= size(meta)
+    # r,c  = size(expr)
+	# Check the compatability between meta data and expression matrix
+	mc >= 2 || throw(ArgumentError("$fn_meta the file for meta data, has only 0 or 1 column."))
+	if !(["Name" "Group"] ⊆ names(meta)) && (meta[:,1] ⊆ names(expr))
+		# assume the first two column as 'Name' and 'Group'
+		rename!(meta, [1 => :Name, 2 => :Group]) 
+	end
+	# exit early if meta data does not fit the expression profile
+	if !(["Name" "Group"] ⊆ names(meta)) || !(meta.Name ⊆ names(expr))
+		throw(ArgumentError("Meta data file, $fn_meta, does not fit with the expression file, $fn_expr. Some sample names in the meta are not found in the column names of the expression matrix"))
+	end
+	if size(unique(names(expr)))[1] .!= size(names(expr))[1]
+		throw(ArgumentError("Duplicate column names exist in the representation matrix."))
+	end
+	meta.Group = categorical(meta.Group)
+	g_name = unique(meta.Group)
+	mg         = length(g_name)
+	if mg < 2
+		throw(ArgumentError("Meta data file, $fn_meta has only 0 or 1 group. It must consist of two 'Group' levels"))
+	end
+	@info "INFO: According to the meta information, there are $mg groups of data and each group will be analyzed with the rest of the sample."
+	# if expr has no column named 'Name', we check if the first column is not a data column (the column name appears in meta.Name)
+	# then we consider the first column as the gene names 
+	if !(["Name"] ⊆ names(expr)) && !(names(expr, 1) ⊆ meta.Name)
+		"Expression matrix has no 'Name' column and its first column is not a sample profile; designate it as gene name column."
+		rename!(expr, [1 => :Name])
+	end
+	# Remove the rows with missing data
+	# Columns with Number datatype are assumed to be the expression profiles
+	data_names = names(dropmissing!(expr), Number)
+	if !(meta.Name ⊆ data_names)
+		throw(ArgumentError("$fn_expr expression matrix contains non-numeric (Number) profiles."))
+	end
+    gene_names = convert(Vector{String},expr.Name)
+	# Generate pseudo-bulk profiles
+	if n_pseudo > 0
+		df_expr = reduce(hcat, [pseudobulk_group(expr[:, meta.Name[meta.Group .== g_name[i]]], n_pseudo, g_name[i]) for i in 1:mg ])
+		meta_group = DataFrame()
+		insertcols!(meta_group,   1, :Name => names(df_expr))
+		insertcols!(meta_group,   2, :Group => reduce(hcat,split.(names(df_expr),"_"))[1,:])
+	else
+		df_expr = expr[:,2:end]
+		meta_group = meta
+	end
+	# Filter low-expressed cells
+	s_inds = (sum.(eachcol(df_expr .> 0)) .> min_profiles)
+	s_del = sum(.!s_inds)
+	if s_del > 0
+		for i in 1:s_del
+			meta_group = meta_group[.!(meta_group[:,1] .== names(df_expr)[.!s_inds][i]),:]
+		end
+	end
+	df_expr    = df_expr[:, s_inds]
+	inds       = ((sum.(eachrow(df_expr .> 0))) .> min_features)
+	gene_names = gene_names[inds]
+	df_expr    =  df_expr[inds, :]
+	@info "INFO: size after filtering lowly expressed genes and profiles and pseudo-bulk sampling, $(size(df_expr))"
+	# Process the house-keeping genes
+    if gene_name_type == "ENTREZID"
+        gene_names = convert(Vector{String}, gene_names)
     end
-    fn_stem, = splitext(basename(fn_expr))
-    expr = CSV.read(fn_expr, DataFrame)
-    a,b=size(expr)
-    println("INFO: Successfully read in the expression matrix, including gene names (1st column),  with a size of: ", (a,b))
-    if hk_name == "ENTREZID"
-        gene_names = [string(expr[i,1]) for i in 1:a]        
-    else
-        gene_names = convert(Vector{String},expr[!,1])
-    end
-    expr = expr[!,2:end]
-    metadata = CSV.read(fn_metadata, DataFrame)
-    md_r,md_c=size(metadata)
-    if md_c != 2
-        println("ERROR: input ",basename(fn_metadata)," less than 2 columns, please modify and input again.")
-    end
-    uniq_metadata=unique(metadata[:,2])
-    if size(uniq_metadata)[1] != 2
-        return(println("ERROR:There are more than two sample groups in the entered group file. Change the sample groups to two groups and enter the sample groups again."))
-    end
-    group1_samplename=metadata[(1:md_r)[metadata[:,2] .== uniq_metadata[1]],:][:,1]
-    group2_samplename=metadata[(1:md_r)[metadata[:,2] .== uniq_metadata[2]],:][:,1]
-    df_ctrl  = expr[!, (1:(b-1))[map(x -> ∈(x, group1_samplename), names(expr))] ]
-    df_treat = expr[!, (1:(b-1))[map(x -> ∈(x, group2_samplename), names(expr))]]
-    no_up_drop_df_ctrl_col = (sum.(eachcol(df_ctrl.>0)) .> cell_drop_rate)
-    no_up_drop_df_treat_col = (sum.(eachcol(df_treat.>0)) .> cell_drop_rate)
-    println("INFO: There were ",md_r-sum(no_up_drop_df_ctrl_col)-sum(no_up_drop_df_treat_col)," samples with the number of detected genes (non-0 value) less than ",cell_drop_rate,", and the samples were removed.")
-    df_ctrl = df_ctrl[:,(1:size(df_ctrl)[2])[no_up_drop_df_ctrl_col]]
-    df_treat = df_treat[:,(1:size(df_treat)[2])[no_up_drop_df_treat_col]]
-    no_up_drop_df_ctrl_row = (sum.(eachrow(df_ctrl.>0)) .> gene_drop_rate)
-    no_up_drop_df_treat_row =(sum.(eachrow(df_treat.>0)) .> gene_drop_rate)
-    no_up_drop_row = (no_up_drop_df_ctrl_row .& no_up_drop_df_treat_row)
-    df_ctrl = df_ctrl[no_up_drop_row,:]
-    df_treat = df_treat[no_up_drop_row,:]
-    gene_names = gene_names[no_up_drop_row]
-    println("INFO: The number of cells detected in the presence of ",a-sum(no_up_drop_row)," gene (value non-0) was less than ",gene_drop_rate," in the ctrl and/or treat groups, and gene was removed.")
-    inds_ctrl = maximum.(eachrow(df_ctrl )) .>= expr_threshold
-    inds_treat= maximum.(eachrow(df_treat)) .>= expr_threshold
-    inds = inds_ctrl .| inds_treat
-    df_ctrl = df_ctrl[inds,:]
-    df_treat= df_treat[inds,:]
-    gene_names = gene_names[inds]
-    println("INFO: Size of the matrices after filtering non-expressed genes")
-    r_ctrl,  c_ctrl  = size(df_ctrl)
-    r_treat, c_treat = size(df_treat)
-    println("INFO: Size of the control group: ",   size(df_ctrl ))
-    println("INFO: Size of the treatment group: ", size(df_treat))
-    if use_housekeeping == "yes"
+	# If not using house-keeping genes, randomly pick 'ref_gene_max' as reference genes
+	ref_gene = sample(gene_names, min(length(gene_names), ref_gene_max), replace = false)
+    if use_hk_genes == "yes"
         # Read in the list of house-keeping genes
-        isfile(hk_file) || throw(ArgumentError(hk_file, " does not exist or is not a regular file."))
-        filesize(hk_file) > 0 || throw(ArgumentError("file for house keeping genes has size 0."))
-        ref_gene = CSV.read(hk_file, DataFrame)
-        ref_gene = ref_gene[!, Symbol(hk_name)]
-        c=size(ref_gene)[1]
-        if hk_name == "ENTREZID"
-            ref_gene = [string(ref_gene[i]) for i in 1:c]
-        end
-        println("INFO: Successfully read in the house-keeping genes, with a size of: ", (c,1))
-        ref_gene = map(x -> ∈(x, ref_gene), gene_names)
-        ref_sum_yuan = sum(ref_gene)
-        if ref_sum_yuan > ref_gene_num & ref_gene_num < length(ref_gene)
-            names_sit = gene_names[ref_gene]
-            ref_gene_sit = rand_sit(ref_gene_num,ref_sum_yuan)
-            names_sit = names_sit[ref_gene_sit]
-            ref_gene = map(x -> ∈(x, names_sit), gene_names)
-            ref_sum = length(names_sit)
-            print("INFO: The number of housekeeping genes was $(ref_sum_yuan), which was randomly selected and adjusted to $(ref_sum)")
-        else
-            ref_sum = sum(ref_gene)
-            print("The number of housekeeping genes was $(ref_sum_yuan)")
-        end
-        if ref_sum_yuan == 0
-            println(". \nWARN: The expression profile you entered does not contain the housekeeping gene provided by us. Therefore, we do not use housekeeping gene for subsequent analysis.")
-            ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
-            ref_gene_new = (.!ref_gene .| ref_gene)
-        else
-            hk_nonhk = copy(gene_names)
-            hk_nonhk[ref_gene] .= "hk_gene"
-            hk_nonhk[.!ref_gene] .= "non_hk_gene"
-            exp_sit = DataFrame()
-            exp_sit[:,:gene_names] = gene_names
-            exp_sit[:, :gene_types] = hk_nonhk
-            exp_sit = [exp_sit df_ctrl df_treat]
-            ref_sum_non = sum((.!ref_gene))
-            gene_fn_out = string(fn_stem,"_hk_nonhk_gene.tsv")
-            CSV.write(gene_fn_out, exp_sit, delim = "\t")
-            println(", and the number of non-housekeeping genes was $(ref_sum_non). The expression profile (gene name, housekeeping gene or not, and sample) was saved into $(gene_fn_out).")
-            c_t_min = min(c_ctrl,c_treat)
-            if c_ctrl > 3 .& c_treat > 3
-                graph_num = rand_sit(3,c_t_min)
-            else
-                graph_num = (1:c_t_min)
-            end
-            for i in graph_num
-                hk_non_hk_graph(exp_sit,names(df_ctrl)[i],fn_stem)
-                hk_non_hk_graph(exp_sit,names(df_treat)[i],fn_stem)
-            end
-            ref_gene_new = (ref_gene .& ref_gene)
-        end
-    else
-        ref_gene = convert(Vector{Bool}, .!(map(x -> ∈(x, gene_names), gene_names)))
-        ref_gene_new = (.!ref_gene .| ref_gene)
-    end
-    t_ctrl = get_major_reo_lower_count(c_ctrl , pval_reo)
-    t_treat  = get_major_reo_lower_count(c_treat, pval_reo)
-    println("INFO: Minimum size for significantly stable REO in the control group: ",   t_ctrl )
-    println("INFO: Minimum size for significantly stable REO in the treatment group: ", t_treat)
-    result = reoa_update_housekeeping_gene(df_ctrl,
-        df_treat,
-        gene_names,
-        ref_gene,
-        c_ctrl,
-        c_treat,
-        t_ctrl,
-        t_treat,
-        pval_sign_reo,
-        padj_sign_reo,
-        fn_stem,
-        ref_gene_new
-        )
-    return result
+        isfile(hk_file)       || throw(ArgumentError("$hk_file does not exist or is not a regular file."))
+        filesize(hk_file) > 0 || throw(ArgumentError("$hk_file for house-keeping genes has size 0."))
+		# Read in as String
+        ref_gene = CSV.read(hk_file, DataFrame, types = String)
+		if gene_name_type ∈ names(ref_gene)
+			ref_gene = ref_gene[:, gene_name_type]
+			ref_gene = intersect(ref_gene, gene_names)
+			if length(ref_gene) < ref_gene_min
+				@info "WARN: only $(length(ref_gene)) house-keeping genes are available, we just ignore this."
+				ref_gene = sample(gene_names, min(length(gene_names), ref_gene_max), replace = false)
+			end
+		end
+	end
+	ref_gene_vec = convert(BitVector, [i ∈ ref_gene for i in gene_names])
+	@time result = identify_degs(Matrix(df_expr),
+								meta_group.Group, # Group information for each column in data
+								gene_names,
+								# threshold::AbstractMatrix,   # Threshold for each group, 2xg
+								pval_reo,
+								pval_deg,  # P-value threshold for DEGs
+								padj_deg,  # FDR threshold for DEGs
+								ref_gene_vec, 
+								n_iter,        # Threshold for iterations
+								n_conv         # Threshold for convergence
+						)
+	# Beautify output
+	# McCullagh_test result header
+	header = [:pval, :padj, :n11, :n21, :n31, :n12, :n22, :n32, :n13, :n23, :n33, :Δ1, :Δ2, :se, :z1, :up_down]
+	for i in 1:mg
+		g_sit = (meta_group.Group .== g_name[i])
+		outcome_result = DataFrame(result[:,(2 + 16*(i - 1)):(1 + 16*i)],header)
+		insertcols!(outcome_result,   1, :genename => result[:,1])
+		(mg == 2) ? fg_name = join([g_name[1],g_name[2]],"_") : fg_name = g_name[i]
+		CSV.write(join([fn_stem,fg_name,"result.tsv"], "_"), outcome_result,  delim = '\t')
+		plot_result(outcome_result, join([fn_stem,fg_name], "_"))
+		plot_heatmap(df_expr[:,g_sit], df_expr[:,.!g_sit], join([fn_stem,fg_name], "_"), log1p = true)
+		plot_heatmap(df_expr[(outcome_result.padj .<= padj_deg),g_sit], df_expr[(outcome_result.padj .<= padj_deg),.!g_sit], join([fn_stem, fg_name, "degs"], "_"), log1p = true)
+		(mg == 2) ? break : continue
+	end
+	insertcols!(df_expr,   1, :genename => result[:,1])
+	CSV.write(join([fn_stem, "df_expr.tsv"], "_"), df_expr, delim = '\t')
+	CSV.write(join([fn_stem, "df_meta.tsv"], "_"), meta_group, delim = '\t')
+	@info "INFO: The expression profile and metadata file after pseudobulk are $(join([fn_stem, "df_expr.tsv"], "_")) and $(join([fn_stem, "df_meta.tsv"], "_"))"
+	gene_up_down = DataFrame(hcat(gene_names, reduce(hcat, [result[:,i*16 + 1] for i in 1:fld(size(result)[2],16)])),:auto)
+	CSV.write(join([fn_stem, "gene_up_down.tsv"], "_"), rename!(gene_up_down,((mg == 2) ? ["gene_name", string(g_name[1], "_vs_", g_name[2])] : ["gene_name"; string.(g_name, "_vs_other")])), delim = '\t')
+	# for i in 1:mg
+	# 	g_sit = (meta_group.Group .== g_name[i])
+	# 	outcome_result = DataFrame(result[:,(2 + 16*(i - 1)):(1 + 16*i)],header)
+	# 	insertcols!(outcome_result,   1, :genename => result[:,1])
+	# 	inds = ((sum.(eachrow(df_expr[:,g_sit])) .> min_features) .&& (sum.(eachrow(df_expr[:,.!g_sit])) .> min_features))
+	# 	outcome_result = outcome_result[inds,:]
+	# 	df_expr = df_expr[inds,:]
+	# 	gene_names = gene_names[inds,:]
+	# 	CSV.write(join([fn_stem,g_name[i],"result.tsv"], "_"), outcome_result,  delim = '\t')
+	# 	plot_result(outcome_result, join([fn_stem,g_name[i]], "_"))
+	# 	plot_heatmap(df_expr[:,[1,g_sit]], df_expr[:,.!g_sit], join([fn_stem,g_name[i]], "_"), log1p = true)
+	# 	plot_heatmap(df_expr[(outcome_result.padj .<= padj_deg),g_sit], df_expr[(outcome_result.padj .<= padj_deg),.!g_sit], join([fn_stem, g_name[i], "degs"], "_"), log1p = true)
+	# end
+    return "RankCompV3 analysis complete."
 end
 
 end # module
