@@ -686,7 +686,7 @@ function reoa(
 	# 	plot_heatmap(df_expr[:,[1,g_sit]], df_expr[:,.!g_sit], join([fn_stem,g_name[i]], "_"), log1p = true)
 	# 	plot_heatmap(df_expr[(outcome_result.padj .<= padj_deg),g_sit], df_expr[(outcome_result.padj .<= padj_deg),.!g_sit], join([fn_stem, g_name[i], "degs"], "_"), log1p = true)
 	# end
-    return "RankCompV3 analysis complete."
+    return gene_up_down
 end
 
 end # module
