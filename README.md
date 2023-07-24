@@ -32,17 +32,23 @@ The first return value is a DataFrame, where rows are genes and columns are stat
 
 ```julia
 julia> result
-(19999×16 DataFrame
-   Row │ Name     pval         padj        n11      n12      n13      n21      n22      n23      n31      n32      n33      Δ1           Δ2          se         z1
-       │ String   Float64      Float64     Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64  Float64      Float64     Float64    Float64
-───────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-     1 │ DE1      0.23566      0.716036     1532.0     75.0      0.0   1220.0  11010.0    602.0     16.0   2933.0   1674.0   1.91208      1.81954    0.0393608    48.5783
-     2 │ DE2      0.280118     0.761567     2277.0    288.0      0.0    965.0  11514.0    372.0     20.0   2615.0   1011.0   1.74141      1.70287    0.0405313    42.9647
-     3 │ DE3      0.0578546    0.359121     1576.0     37.0      0.0   1376.0   8716.0    293.0    113.0   5211.0   1740.0   3.05828      3.02011    0.0437133    69.9623
-   ⋮   │    ⋮          ⋮           ⋮          ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮        ⋮          ⋮           ⋮           ⋮           ⋮
- 19998 │ EE19999  0.344847     0.823375     1475.0    307.0      0.0   1756.0  15356.0    128.0      0.0     38.0      2.0   1.52307      1.41599    0.0525798    28.9668
- 19999 │ EE20000  0.694484     0.980397     1571.0    315.0      0.0    979.0  15555.0    362.0      1.0    225.0     54.0   0.63329      0.577392   0.0481845    13.143
-                                                                                                                                             19965 rows omitted, 19999×16
+19999×2 DataFrame
+   Row │ gene_name  group1_vs_group2
+       │ Any        Any
+───────┼─────────────────────────────
+     1 │ DE1        up
+     2 │ DE2        up
+     3 │ DE3        up
+     4 │ DE4        up
+     5 │ DE5        up
+     6 │ DE6        up
+   ⋮   │     ⋮             ⋮
+ 19995 │ EE19996    up
+ 19996 │ EE19997    up
+ 19997 │ EE19998    up
+ 19998 │ EE19999    up
+ 19999 │ EE20000    up
+                   19988 rows omitted
 ```
 
 #### 1.2.2 Run your own DEG analysis
@@ -142,34 +148,24 @@ Below lists the optional keyword parameters and their default values.
 
 #### 1.4.1 result
 
-- The expression profile of the ctrl group (after preprocessing).  (See [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt))
-
-- The expression profile of the treat group (after preprocessing).  (See [fn_expr_treat.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_treat.tsv))
-
-- This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1.  (See [fn_expr_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_result.tsv))
-
-- Graph of Distribution of Expression Values.  (See [fn_expr_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_dist.pdf))
-
-- Heat maps of expression values for the ctrl and treat groups.  (See [fn_expr_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_expr_heat.pdf))
-
-- Distribution of parameters in 3 x 3 contingency tables.  (See [fn_expr_contigency_table.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_contigency_table.pdf))
-
-- Delta distribution.  (See [fn_expr_delta_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_delta_value.pdf))
-
-- Distribution of Standard Error (SE).  (See [fn_expr_se.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_se.pdf))
-
-- Distribution of z1.  (See [fn_expr_z1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_z1.pdf))
-
-- Distribution of p and FDR values.  (See [fn_expr_p_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_p_value.pdf))
-
-- Distribution of expression values for DEGs.  (See [fn_expr_degs_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_dist.pdf))
-
-- Heat map of the expression values of DEGs in the ctrl and treat groups.  (See [fn_expr_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_degs_expr_heat.pdf))
+- The expression profile (after preprocessing).  (See [fn_expr_df_expr.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_df_expr.tsv))
+- The meta data (after preprocessing).  (See [fn_expr_df_meta.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_df_meta.tsv))
+- This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1, up_down.  (See [fn_expr_group1_group2_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_result.tsv))
+- Up-down-regulation of all genes in all groups (up is up-regulation, down is down, no change means that the gene is not recognized as up-regulation/down-regulation) (See [fn_expr_gene_up_down.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_gene_up_down.tsv))
+- Graph of Distribution of Expression Values.  (See [fn_expr_group1_group2_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_dist.pdf))
+- Heat maps of expression values for the ctrl and treat groups.  (See [fn_expr_group1_group2_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_heat.pdf))
+- Distribution of parameters in 3 x 3 contingency tables.  (See [fn_expr_group1_group2_contigency_table.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_contigency_table.pdf))
+- Delta distribution.  (See [fn_expr_group1_group2_delta_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_delta_value.pdf))
+- Distribution of Standard Error (SE).  (See [fn_expr_group1_group2_se.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_se.pdf))
+- Distribution of z1.  (See [fn_expr_group1_group2_z1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_z1.pdf))
+- Distribution of p and FDR values.  (See [fn_expr_group1_group2_p_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_p_value.pdf))
+- Distribution of expression values for DEGs.  (See [fn_expr_group1_group2_degs_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_dist.pdf))
+- Heat map of the expression values of DEGs in the ctrl and treat groups.  (See [fn_expr_group1_group2_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_heat.pdf))
 
 
 #### 1.4.2 log file
 
-- [RankCompV3-test-data-output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
+- [RankCompV3_test_data_output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
 
 ## 2 Used in the R language
 
@@ -220,67 +216,23 @@ The first return value is a DataFrame, where rows are genes and columns are stat
 ```R
 > result
 Julia Object of type Tuple{DataFrames.DataFrame, DataFrames.DataFrame, DataFrames.DataFrame}.
-(19999×16 DataFrame
-   Row │ Name     pval        padj        n11      n12      n13      n21       ⋯
-       │ String   Float64     Float64     Float64  Float64  Float64  Float64   ⋯
-───────┼────────────────────────────────────────────────────────────────────────
-     1 │ DE1      0.237557    0.719072     1531.0     75.0      0.0   1213.0   ⋯
-     2 │ DE2      0.280253    0.762245     2276.0    285.0      0.0    978.0
-     3 │ DE3      0.0578256   0.358368     1574.0     37.0      0.0   1375.0
-     4 │ DE4      0.155619    0.595079     1539.0    139.0      0.0    760.0
-     5 │ DE5      0.0432114   0.30634      1166.0     12.0      0.0   1582.0   ⋯
-     6 │ DE6      0.0572817   0.356322     1583.0     70.0      0.0    909.0
-     7 │ DE7      0.00925067  0.123914     2182.0     64.0      0.0   3608.0
-     8 │ DE8      0.036411    0.278039     1927.0     69.0      0.0   2155.0
-   ⋮   │    ⋮         ⋮           ⋮          ⋮        ⋮        ⋮        ⋮      ⋱
- 19993 │ EE19994  0.0833578   0.438012     1719.0    353.0      0.0   1143.0   ⋯
- 19994 │ EE19995  0.0457029   0.316136     1840.0    215.0      0.0   1323.0
- 19995 │ EE19996  0.843871    0.999171     1103.0    276.0      0.0    440.0
- 19996 │ EE19997  6.70797e-5  0.00465755   1248.0     25.0      0.0   2058.0
- 19997 │ EE19998  0.909702    1.0          1112.0    136.0      0.0    931.0   ⋯
- 19998 │ EE19999  0.348734    0.827127     1475.0    304.0      0.0   1752.0
- 19999 │ EE20000  0.699539    0.981932     1576.0    313.0      0.0    970.0
-                                                9 columns and 19984 rows omitted, 19999×6 DataFrame
-   Row │ Name     Sample1  Sample2  Sample3  Sample4  Sample5
-       │ String   Int64    Int64    Int64    Int64    Int64
-───────┼──────────────────────────────────────────────────────
-     1 │ DE1           10       53       18       84       18
-     2 │ DE2            5       22       59       11       33
-     3 │ DE3           62       39       18       19        8
-     4 │ DE4            6      116      131        3       49
-     5 │ DE5           28       31       27       58       16
-     6 │ DE6           91       81       26        3       29
-     7 │ DE7            8        4       18        4        5
-     8 │ DE8            3       31        5       32       11
-   ⋮   │    ⋮        ⋮        ⋮        ⋮        ⋮        ⋮
- 19993 │ EE19994        6      176       36        0        1
- 19994 │ EE19995        3      103        8        0       48
- 19995 │ EE19996       60       27      405      132        0
- 19996 │ EE19997       23        4        0        0      116
- 19997 │ EE19998      172       28       31        2      128
- 19998 │ EE19999      102       49        3        0        6
- 19999 │ EE20000       96        2        2       27      112
-                                            19984 rows omitted, 19999×6 DataFrame
-   Row │ Name     Sample76  Sample77  Sample78  Sample79  Sample80
-       │ String   Int64     Int64     Int64     Int64     Int64
-───────┼───────────────────────────────────────────────────────────
-     1 │ DE1           200       180       176        26        24
-     2 │ DE2            26        37        36        40        79
-     3 │ DE3           157        81        89       220        97
-     4 │ DE4            15       205        63        75       228
-     5 │ DE5           505        92       119       157       261
-     6 │ DE6           191       131        99       147        68
-     7 │ DE7           116        38        34        58        64
-     8 │ DE8            53        39       183        22        73
-   ⋮   │    ⋮        ⋮         ⋮         ⋮         ⋮         ⋮
- 19993 │ EE19994        88        15       192         9        35
- 19994 │ EE19995       174        73        14        16        97
- 19995 │ EE19996       138        61       407       182         0
- 19996 │ EE19997       325        94       231       281        41
- 19997 │ EE19998        24         0       116        43       656
- 19998 │ EE19999         0       144         4       393         0
- 19999 │ EE20000       294         0        26        98        18
-                                                 19984 rows omitted)
+19999×2 DataFrame
+   Row │ gene_name  group1_vs_group2
+       │ Any        Any
+───────┼─────────────────────────────
+     1 │ DE1        up
+     2 │ DE2        up
+     3 │ DE3        up
+     4 │ DE4        up
+     5 │ DE5        up
+     6 │ DE6        up
+   ⋮   │     ⋮             ⋮
+ 19995 │ EE19996    up
+ 19996 │ EE19997    up
+ 19997 │ EE19998    up
+ 19998 │ EE19999    up
+ 19999 │ EE20000    up
+                   19988 rows omitted
 ```
 
 #### 2.2.2 Run your own DEG analysis
