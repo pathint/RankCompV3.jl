@@ -61,7 +61,7 @@ You need to prepare two input files before the analysis: metadata file and expre
 
  Column names for a metadata should be `Name` and `Group`. 
 
- See an example metadata file, [fn_metadata.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_metadata.txt).
+ See an example metadata file, [fn_meta.txt](https://github.com/yanjer/RankCompV3.jl/blob/master/test/fn_meta.txt).
 
 
 - **expression matrix file (required).**
@@ -148,24 +148,24 @@ Below lists the optional keyword parameters and their default values.
 
 #### 1.4.1 result
 
-- The expression profile (after preprocessing).  (See [fn_expr_df_expr.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_df_expr.tsv))
-- The meta data (after preprocessing).  (See [fn_expr_df_meta.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_df_meta.tsv))
-- This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1, up_down.  (See [fn_expr_group1_group2_result.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_result.tsv))
-- Up-down-regulation of all genes in all groups (up is up-regulation, down is down, no change means that the gene is not recognized as up-regulation/down-regulation) (See [fn_expr_gene_up_down.tsv](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_gene_up_down.tsv))
-- Graph of Distribution of Expression Values.  (See [fn_expr_group1_group2_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_dist.pdf))
-- Heat maps of expression values for the ctrl and treat groups.  (See [fn_expr_group1_group2_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_heat.pdf))
-- Distribution of parameters in 3 x 3 contingency tables.  (See [fn_expr_group1_group2_contigency_table.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_contigency_table.pdf))
-- Delta distribution.  (See [fn_expr_group1_group2_delta_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_delta_value.pdf))
-- Distribution of Standard Error (SE).  (See [fn_expr_group1_group2_se.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_se.pdf))
-- Distribution of z1.  (See [fn_expr_group1_group2_z1.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_z1.pdf))
-- Distribution of p and FDR values.  (See [fn_expr_group1_group2_p_value.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_p_value.pdf))
-- Distribution of expression values for DEGs.  (See [fn_expr_group1_group2_degs_expr_dist.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_dist.pdf))
-- Heat map of the expression values of DEGs in the ctrl and treat groups.  (See [fn_expr_group1_group2_degs_expr_heat.pdf](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_heat.pdf))
+- The expression profile (after preprocessing).  (See [fn_expr_df_expr.tsv](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_df_expr.tsv))
+- The meta data (after preprocessing).  (See [fn_expr_df_meta.tsv](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_df_meta.tsv))
+- This file contains Name, pval, padj, n11, n12, n13, n21, n22, n23, n31, n32, n33, Δ1, Δ2, se, z1, up_down.  (See [fn_expr_group1_group2_result.tsv](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_result.tsv))
+- Up-down-regulation of all genes in all groups (up is up-regulation, down is down, no change means that the gene is not recognized as up-regulation/down-regulation) (See [fn_expr_gene_up_down.tsv](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_gene_up_down.tsv))
+- Graph of Distribution of Expression Values.  (See [fn_expr_group1_group2_expr_dist.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_dist.pdf))
+- Heat maps of expression values for the ctrl and treat groups.  (See [fn_expr_group1_group2_expr_heat.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_expr_heat.pdf))
+- Distribution of parameters in 3 x 3 contingency tables.  (See [fn_expr_group1_group2_contigency_table.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_contigency_table.pdf))
+- Delta distribution.  (See [fn_expr_group1_group2_delta_value.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_delta_value.pdf))
+- Distribution of Standard Error (SE).  (See [fn_expr_group1_group2_se.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_se.pdf))
+- Distribution of z1.  (See [fn_expr_group1_group2_z1.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_z1.pdf))
+- Distribution of p and FDR values.  (See [fn_expr_group1_group2_p_value.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_p_value.pdf))
+- Distribution of expression values for DEGs.  (See [fn_expr_group1_group2_degs_expr_dist.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_dist.pdf))
+- Heat map of the expression values of DEGs in the ctrl and treat groups.  (See [fn_expr_group1_group2_degs_expr_heat.pdf](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/fn_expr_group1_group2_degs_expr_heat.pdf))
 
 
 #### 1.4.2 log file
 
-- [RankCompV3_test_data_output.log](https://github.com/yanjer/RankCompV3-test-data-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
+- [RankCompV3_test_data_output.log](https://github.com/yanjer/testdata-output/blob/master/RankCompV3-test-data-output/RankCompV3_test_data_output.log)
 
 ## 2 Used in the R language
 
