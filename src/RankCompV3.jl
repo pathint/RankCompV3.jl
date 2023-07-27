@@ -28,46 +28,40 @@ export
 include("$(joinpath(@__DIR__, "..", "code","plot.jl"))")
 
 """
-Description on REOA and its usage
+pseudobulk_group(group_expr, ncell_pseudo, g_name)
 
-This is a version of `Optimisers.setup`, and is the first step before using [`train!`](@ref Flux.train!).
+Generate a matrix of pseudobulk profiles from `mat` which stores single-cell RNA profiles. Each column represents a cell's profile. Each pseudobulk profile is generated from `ncell_pseudo` (default: 10) single-cell profiles. `g_name` is a grouping label that will be added before the pseudobulk merged sample name.
 
-It differs from `Optimisers.setup` in that it:
 
-* has one extra check for mutability (since Flux expects to mutate the model in-place,
-  while Optimisers.jl is designed to return an updated model)
-
-* has methods which accept Flux's old optimisers, and convert them.
-  (The old `Flux.Optimise.Adam` and new `Optimisers.Adam` are distinct types.)
-
-# Example
+# Examples
 ```jldoctest
-
-julia> model.bias  # was zero, mutated by Flux.train!
-1-element Vector{Float32}:
- 10.190001
-
-julia> opt  # mutated by Flux.train!
-(weight = Leaf(Momentum{Float64}(0.1, 0.9), Float32[-2.018 3.027]), bias = Leaf(Momentum{Float64}(0.1, 0.9), Float32[-10.09]), σ = ())
+julia> pseudobulk_expr(DataFrame(rand(0:32, 10, 6),:auto), 3, String7("group1"))
+10×2 DataFrame
+ Row │ group1_x1  group1_x2
+     │ Int64      Int64
+─────┼──────────────────────
+   1 │        71         66
+   2 │        15         67
+   3 │        56         49
+   4 │        32         22
+   5 │        47         67
+   6 │        64         46
+   7 │        52         54
+   8 │        70         52
+   9 │        49         11
+  10 │        61         46
 ```
 """
-
-
-# pseudobulk
-function pseudobulk_group(group_expr::DataFrame,
-							n_pseudo::Int64,
-							g_name::String7)
-	r_group, c_group = size(group_expr )
-	cp_group  = ceil(Int,  c_group/n_pseudo)
-	cp_group > 1 || @info "WARN: too few profiles to generate $n_pseudo pseudo-bulk profiles for the 'group' group"
-	it_group  = collect(Iterators.partition(sample(1:c_group, c_group, replace = false), cp_group)) # Random-shuffle, then partition
-	group_expr  = reduce(hcat, [sum.(eachrow( group_expr[:, i])) for i in it_group ]) # Matrix r_group x n_pseudo
-	group_expr  = DataFrame(group_expr,  :auto)
+function pseudobulk_expr(group_expr::DataFrame,
+						ncell_pseudo::Int,
+						g_name::String7)
+	r_group, c_group = size(group_expr)
+	it_group = collect(Iterators.partition(sample(1:c_group , c_group , replace = false), ncell_pseudo)) # Random-shuffle, then partition
+	group_expr = reduce(hcat, [sum.(eachrow( group_expr[:, i])) for i in it_group ]) # Matrix r_group x ncell_pseudo
+	group_expr = DataFrame(group_expr,:auto)
 	rename!(group_expr,string.(g_name,"_",names(group_expr)))
 	return group_expr
 end
-
-
 
 #   If two genes have the same expression value,
 #   a random order is returned.
@@ -205,9 +199,11 @@ see Biometrika, 1977, 64(3), 449-453.
 
 Test case (Table 1 in p. 452) 
 
-Input
+Example
 ```jldoctest
-mat = [43 8 3 0; 2 2 5 3; 1 0 7 2; 0 0 1 5]
+julia> mat = [43 8 3 0; 2 2 5 3; 1 0 7 2; 0 0 1 5]
+julia> McCullagh_test(mat)
+(0.005469174895116946, 1.4504988072997458, 1.502600073417028, 0.5221345956920705, 2.778017046308073)
 ```
 Expected N matrix
 ```jldoctest
