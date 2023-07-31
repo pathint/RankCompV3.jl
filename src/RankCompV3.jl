@@ -35,30 +35,33 @@ Generate a matrix of pseudobulk profiles from `mat` which stores single-cell RNA
 
 # Examples
 ```jldoctest
-julia> pseudobulk_expr(DataFrame(rand(0:32, 10, 6),:auto), 3, String7("group1"))
-10×2 DataFrame
- Row │ group1_x1  group1_x2
-     │ Int64      Int64
-─────┼──────────────────────
-   1 │        71         66
-   2 │        15         67
-   3 │        56         49
-   4 │        32         22
-   5 │        47         67
-   6 │        64         46
-   7 │        52         54
-   8 │        70         52
-   9 │        49         11
-  10 │        61         46
+julia> pseudobulk_group(DataFrame(rand(0:32, 10, 6),:auto), 3, String7("group1"))
+10×3 DataFrame
+ Row │ group1_x1  group1_x2  group1_x3
+     │ Int64      Int64      Int64
+─────┼─────────────────────────────────
+   1 │        21         17         51
+   2 │        35         38         61
+   3 │        14         22         29
+   4 │        23         11         36
+   5 │        45         43         24
+   6 │         5         27         49
+   7 │        12         36         45
+   8 │        24         18         17
+   9 │        34         27         16
+  10 │        30         42         29
 ```
 """
-function pseudobulk_expr(group_expr::DataFrame,
-						ncell_pseudo::Int,
-						g_name::String7)
-	r_group, c_group = size(group_expr)
-	it_group = collect(Iterators.partition(sample(1:c_group , c_group , replace = false), ncell_pseudo)) # Random-shuffle, then partition
-	group_expr = reduce(hcat, [sum.(eachrow( group_expr[:, i])) for i in it_group ]) # Matrix r_group x ncell_pseudo
-	group_expr = DataFrame(group_expr,:auto)
+# pseudobulk
+function pseudobulk_group(group_expr::DataFrame,
+							n_pseudo::Int64,
+							g_name::String7)
+	r_group, c_group = size(group_expr )
+	cp_group  = ceil(Int,  c_group/n_pseudo)
+	cp_group > 1 || @info "WARN: too few profiles to generate $n_pseudo pseudo-bulk profiles for the 'group' group"
+	it_group  = collect(Iterators.partition(sample(1:c_group, c_group, replace = false), cp_group)) # Random-shuffle, then partition
+	group_expr  = reduce(hcat, [sum.(eachrow( group_expr[:, i])) for i in it_group ]) # Matrix r_group x n_pseudo
+	group_expr  = DataFrame(group_expr,  :auto)
 	rename!(group_expr,string.(g_name,"_",names(group_expr)))
 	return group_expr
 end
