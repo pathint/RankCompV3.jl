@@ -28,9 +28,9 @@ export
 include("$(joinpath(@__DIR__, "..", "code","plot.jl"))")
 
 """
-pseudobulk_group(group_expr, ncell_pseudo, g_name)
+pseudobulk_group(group_expr, n_pseudo, g_name)
 
-Generate a matrix of pseudobulk profiles from `mat` which stores single-cell RNA profiles. Each column represents a cell's profile. Each pseudobulk profile is generated from `ncell_pseudo` (default: 10) single-cell profiles. `g_name` is a grouping label that will be added before the pseudobulk merged sample name.
+Generate a matrix of pseudobulk profiles from `mat` which stores single-cell RNA profiles. Each column represents a cell's profile. Each pseudobulk profile is generated from `n_pseudo` (default: 10) single-cell profiles. `g_name` is a grouping label that will be added before the pseudobulk merged sample name.
 
 
 # Examples
