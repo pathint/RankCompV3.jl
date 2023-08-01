@@ -375,7 +375,7 @@ function identify_degs(
 			for k=1:gnum
 				local ic = nre[k] >= threshold[1, k] ? 3 : ((gsi1[k] - nre[k]) >= threshold[1, k] ? 1 : 2)
 				local it = not[k] >= threshold[2, k] ? 3 : ((gsi2[k] - not[k]) >= threshold[2, k] ? 1 : 2)
-				#     i<j  i~j  i>j
+				# c\t i<j  i~j  i>j
 				# i<j n11  n12  n13
 				# i~j n21  n22  n23
 				# i>j n31  n32  n33
@@ -414,9 +414,9 @@ function identify_degs(
 			# padj = adjust(result[:,1], BenjaminiHochberg())
 			result[:, 1] = pval
 			result[:, 2] = padj
-			inds = padj .> padj_deg 
+			inds = .!((pval .<= pval_deg) .&& (padj .<= padj_deg))
 			@info "INFO: iteration $i_iter,  # DEGs $(length(inds) - sum(inds)), # non-DEGs $(sum(inds))"
-			if (abs(sum(ref_gene_vec) - sum(inds)) < n_conv) || (sum(inds) == 0) || (sum(padj .<= padj_deg) == 0)
+			if (abs(sum(ref_gene_vec) - sum(inds)) < n_conv)
 				@info "INFO: Convergence threshold is reached"
 				break
 			end
@@ -511,7 +511,7 @@ julia> reoa("/public/yanj/data/fn_expr.txt",
     	min_profiles = 0,
     	min_features = 0,
     	pval_reo = 0.01,
-     	pval_deg = 0.05,
+     	pval_deg = 1.0,
      	padj_deg = 0.05,
     	use_pseudobulk = 0,
     	use_hk_genes = "yes"
@@ -533,7 +533,7 @@ function reoa(
 	  min_profiles::Int = 0, # Include features (genes) detected in at least this many cells
       min_features::Int = 0, # Include profiles (cells) where at least this many features are detected
           pval_reo::AbstractFloat = 0.01,
-          pval_deg::AbstractFloat = 0.05,
+          pval_deg::AbstractFloat = 1.0,
           padj_deg::AbstractFloat = 0.05,
 		  n_pseudo::Int = 0, # 0 for not using pseudobulk mode, Other values indicate the number of samples that are combined after each pseudobulk.
       use_hk_genes::AbstractString = "yes",
@@ -559,8 +559,8 @@ function reoa(
 	filesize(fn_expr) > 0 && filesize(fn_meta) > 0 || throw(ArgumentError("$fn_expr, or $fn_meta, has size 0."))
     fn_stem, = splitext(basename(fn_expr))   #filename stem
 	# Read in expression matrix
-    expr = occursin(".rds",fn_expr) ? DataFrame(load(fn_expr),:auto) : (occursin(".RData",fn_expr) ? DataFrame(get(load(fn_expr),fn_stem,1),:auto) : CSV.read(fn_expr, DataFrame))
-    meta = occursin(".rds",fn_meta) ? DataFrame(load(fn_meta),:auto) : (occursin(".RData",fn_meta) ? DataFrame(get(load(fn_meta),splitext(basename(fn_meta))[1],1),:auto) : CSV.read(fn_meta, DataFrame))
+    @time expr = occursin(".rds",fn_expr) ? DataFrame(load(fn_expr),:auto) : (occursin(".RData",fn_expr) ? DataFrame(get(load(fn_expr),fn_stem,1),:auto) : CSV.read(fn_expr, DataFrame))
+    @time meta = occursin(".rds",fn_meta) ? DataFrame(load(fn_meta),:auto) : (occursin(".RData",fn_meta) ? DataFrame(get(load(fn_meta),splitext(basename(fn_meta))[1],1),:auto) : CSV.read(fn_meta, DataFrame))
 	mr,mc= size(meta)
     # r,c  = size(expr)
 	# Check the compatability between meta data and expression matrix
@@ -615,7 +615,7 @@ function reoa(
 		end
 	end
 	df_expr    = df_expr[:, s_inds]
-	inds       = ((sum.(eachrow(df_expr .> 0))) .> min_features)
+	inds       = (sum.(eachrow(df_expr .> 0)) .> min_features)
 	gene_names = gene_names[inds]
 	df_expr    =  df_expr[inds, :]
 	@info "INFO: size after filtering lowly expressed genes and profiles and pseudo-bulk sampling, $(size(df_expr))"
@@ -654,7 +654,7 @@ function reoa(
 						)
 	# Beautify output
 	# McCullagh_test result header
-	header = [:pval, :padj, :n11, :n21, :n31, :n12, :n22, :n32, :n13, :n23, :n33, :Δ1, :Δ2, :se, :z1, :up_down]
+	header = [:pval, :padj, :n11, :n12, :n13, :n21, :n22, :n23, :n31, :n32, :n33, :Δ1, :Δ2, :se, :z1, :up_down]
 	for i in 1:mg
 		g_sit = (meta_group.Group .== g_name[i])
 		outcome_result = DataFrame(result[:,(2 + 16*(i - 1)):(1 + 16*i)],header)
@@ -663,7 +663,8 @@ function reoa(
 		CSV.write(join([fn_stem,fg_name,"result.tsv"], "_"), outcome_result,  delim = '\t')
 		plot_result(outcome_result, join([fn_stem,fg_name], "_"))
 		plot_heatmap(df_expr[:,g_sit], df_expr[:,.!g_sit], join([fn_stem,fg_name], "_"), log1p = true)
-		plot_heatmap(df_expr[(outcome_result.padj .<= padj_deg),g_sit], df_expr[(outcome_result.padj .<= padj_deg),.!g_sit], join([fn_stem, fg_name, "degs"], "_"), log1p = true)
+		n_degs = ((outcome_result.padj .<= padj_deg) .&& (outcome_result.pval .<= pval_deg))
+		(sum(n_degs) != 0) ? plot_heatmap(df_expr[n_degs,g_sit], df_expr[n_degs,.!g_sit], join([fn_stem, fg_name, "degs"], "_"), log1p = true) : "no degs"
 		(mg == 2) ? break : continue
 	end
 	insertcols!(df_expr,   1, :genename => result[:,1])
@@ -672,19 +673,6 @@ function reoa(
 	@info "INFO: The expression profile and metadata file after pseudobulk are $(join([fn_stem, "df_expr.tsv"], "_")) and $(join([fn_stem, "df_meta.tsv"], "_"))"
 	gene_up_down = DataFrame(hcat(gene_names, reduce(hcat, [result[:,i*16 + 1] for i in 1:fld(size(result)[2],16)])),:auto)
 	CSV.write(join([fn_stem, "gene_up_down.tsv"], "_"), rename!(gene_up_down,((mg == 2) ? ["gene_name", string(g_name[1], "_vs_", g_name[2])] : ["gene_name"; string.(g_name, "_vs_other")])), delim = '\t')
-	# for i in 1:mg
-	# 	g_sit = (meta_group.Group .== g_name[i])
-	# 	outcome_result = DataFrame(result[:,(2 + 16*(i - 1)):(1 + 16*i)],header)
-	# 	insertcols!(outcome_result,   1, :genename => result[:,1])
-	# 	inds = ((sum.(eachrow(df_expr[:,g_sit])) .> min_features) .&& (sum.(eachrow(df_expr[:,.!g_sit])) .> min_features))
-	# 	outcome_result = outcome_result[inds,:]
-	# 	df_expr = df_expr[inds,:]
-	# 	gene_names = gene_names[inds,:]
-	# 	CSV.write(join([fn_stem,g_name[i],"result.tsv"], "_"), outcome_result,  delim = '\t')
-	# 	plot_result(outcome_result, join([fn_stem,g_name[i]], "_"))
-	# 	plot_heatmap(df_expr[:,[1,g_sit]], df_expr[:,.!g_sit], join([fn_stem,g_name[i]], "_"), log1p = true)
-	# 	plot_heatmap(df_expr[(outcome_result.padj .<= padj_deg),g_sit], df_expr[(outcome_result.padj .<= padj_deg),.!g_sit], join([fn_stem, g_name[i], "degs"], "_"), log1p = true)
-	# end
     return gene_up_down
 end
 
