@@ -127,7 +127,6 @@ Below lists the optional keyword parameters and their default values.
 | -------------- | --------------- | ------------------- | ------------------------------------------------------------ |
 | fn_expr        | AbstractString  | "fn_expr.txt"       | Gene expression profile file path. (required).               |
 | fn_metadata    | AbstractString  | "fn_metadata.txt"   | Grouping information file path. (required)                   |
-| expr_threshold | Number          | 0                   | Gene expression threshold.                                   |
 | min_profiles   | Int             | 0                   | Include features (genes) detected in at least this many cells. |
 | min_features   | Int             | 0                   | Include profiles (cells) where at least this many features are detected. |
 | pval_reo       | AbstractFloat   | 0.01                | Stable threshold for p-value.                                |
