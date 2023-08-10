@@ -583,7 +583,7 @@ function reoa(
 	if size(unique(names(expr)))[1] .!= size(names(expr))[1]
 		throw(ArgumentError("Duplicate column names exist in the representation matrix."))
 	end
-	meta.Group = categorical(meta.Group)
+	meta.Group = string.(categorical(meta.Group))
 	g_name = unique(meta.Group)
 	mg         = length(g_name)
 	if mg < 2
@@ -605,7 +605,7 @@ function reoa(
     gene_names = convert(Vector{String},expr.Name)
 	# Generate pseudo-bulk profiles
 	if n_pseudo > 0
-		df_expr = reduce(hcat, [pseudobulk_group(expr[:, meta.Name[meta.Group .== g_name[i]]], n_pseudo, g_name[i]) for i in 1:mg ])
+		df_expr = reduce(hcat, [pseudobulk_group(expr[:, meta.Name[meta.Group .== g_name[i]]], n_pseudo, String7(g_name[i])) for i in 1:mg ])
 		meta_group = DataFrame()
 		insertcols!(meta_group,   1, :Name => names(df_expr))
 		insertcols!(meta_group,   2, :Group => reduce(hcat,split.(names(df_expr),"_"))[1,:])
