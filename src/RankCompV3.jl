@@ -608,7 +608,7 @@ function reoa(
 		df_expr = reduce(hcat, [pseudobulk_group(expr[:, meta.Name[meta.Group .== g_name[i]]], n_pseudo, String7(g_name[i])) for i in 1:mg ])
 		meta_group = DataFrame()
 		insertcols!(meta_group,   1, :Name => names(df_expr))
-		insertcols!(meta_group,   2, :Group => reduce(hcat,split.(names(df_expr),"_"))[1,:])
+		insertcols!(meta_group,   2, :Group => mapreduce(x->join(x[1:end-1],"_"),vcat,split.(names(df_expr),"_")))
 	else
 		df_expr = expr[:,2:end]
 		meta_group = meta
