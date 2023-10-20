@@ -424,9 +424,9 @@ function identify_degs(
 			ref_gene_vec = inds
 		end
 		gene_up_down = copy(gene_names)
-		gene_up_down[result[:,15] .> 0] .= "up"
-		gene_up_down[result[:,15] .< 0] .= "down"
-		gene_up_down[result[:,15] .== 0] .= "no change"
+		gene_up_down .= "no change"
+		gene_up_down[(result[:,15] .> 0) .&& (result[:, 1] .<= pval_deg) .&& (result[:, 2] .<= padj_deg)] .= "up"
+		gene_up_down[(result[:,15] .< 0) .&& (result[:, 1] .<= pval_deg) .&& (result[:, 2] .<= padj_deg)] .= "down"
 		res = hcat(res, result, gene_up_down)
 		if gnum==2
 			@info "INFO: The results of differentially expressed genes in the iteration process of $(glev[1]) vs $(glev[2]) were output."
@@ -602,7 +602,8 @@ function reoa(
 	if !(meta.Name ⊆ data_names)
 		throw(ArgumentError("$fn_expr expression matrix contains non-numeric (Number) profiles."))
 	end
-    gene_names = convert(Vector{String},expr.Name)
+    # gene_names = convert(Vector{String},expr.Name)
+	gene_names = string.(expr.Name)
 	# Generate pseudo-bulk profiles
 	if n_pseudo > 0
 		df_expr = reduce(hcat, [pseudobulk_group(expr[:, meta.Name[meta.Group .== g_name[i]]], n_pseudo, String7(g_name[i])) for i in 1:mg ])
