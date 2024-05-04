@@ -423,7 +423,7 @@ function identify_degs(
 			i_iter += 1
 			ref_gene_vec = inds
 		end
-		gene_up_down = copy(gene_names)
+		gene_up_down = String.(gene_names)
 		gene_up_down .= "no change"
 		gene_up_down[(result[:,15] .> 0) .&& (result[:, 1] .<= pval_deg) .&& (result[:, 2] .<= padj_deg)] .= "up"
 		gene_up_down[(result[:,15] .< 0) .&& (result[:, 1] .<= pval_deg) .&& (result[:, 2] .<= padj_deg)] .= "down"
